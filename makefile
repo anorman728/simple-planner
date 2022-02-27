@@ -12,6 +12,9 @@ EXEC=$(P).run
 # set noexpandtab
 # %retab!
 
+# To view tabs as printed characters in cat, use the flag `-T`.  It then
+# displays them as "^I", which can be useful.
+
 $(P):
 	@rm -rf $(OUTDIR)
 	@mkdir $(OUTDIR)
@@ -27,3 +30,9 @@ release:
 
 testsqlite:
 	@$(CC) sqlite-testing.c $(CFLAGS) -l $(LDLIBS) -o sqlite-testing.run
+
+testtime:
+	@$(CC) time-testing.c $(CFLAGS) -o time-testing.run
+
+test-planner-functions:
+	@$(CC) planner-functions-tests.c planner-functions.c $(CFLAGS) -o planner-functions-tests.run
