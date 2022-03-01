@@ -48,23 +48,23 @@ static void buildItemTest()
 
     PlannerItem *itmDum = buildItemDummyFunction();
 
-    if (itmDum->date->tm_mon != 6) {
+    if (itmDum->date.tm_mon != 6) {
         printf("FAILURE: date property is wrong.\n");
     }
     if (strcmp(itmDum->desc, "Planner description 436") != 0) {
         printf("FAILURE: desc property is wrong.\n");
     }
-    if (itmDum->exp->tm_mon != 5) {
+    if (itmDum->exp.tm_mon != 5) {
         printf("FAILURE: exp property is wrong.\n");
     }
-    if (*itmDum->rep != rep_W) {
+    if (itmDum->rep != rep_W) {
         printf("FAILURE: rep property is wrong.\n");
     }
     if (itmDum->done != -1) {
         printf("FAILURE: done property is wrong.\n");
     }
 
-    freeItem(itmDum);
+    free(itmDum);
 
     printf("Finished buildItemTest.\n");
 }

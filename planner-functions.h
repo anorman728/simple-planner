@@ -15,16 +15,16 @@ typedef enum planner_repenum
 typedef struct planner_itemstruct
 {
     /** @var Date object. */
-    struct tm *date;
+    struct tm date;
 
     /** @var Description. */
     char *desc;
 
-    /** @var Day of expiration.  0 if none. */
-    struct tm *exp;
+    /** @var Day of expiration.  Year 0 if none. */
+    struct tm exp;
 
     /** @var Type of repetition. */
-    Repetition *rep;
+    Repetition rep;
 
     /** @var 0 if needs to be done, 1 if done, -1 if n/a. */
     char done;

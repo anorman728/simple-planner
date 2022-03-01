@@ -54,51 +54,17 @@ PlannerItem *buildItem(
     struct tm exp,
     char done
 ) {
-    // Copy objects from stack to heap.
-
-    // Date
-    struct tm *dateHp = (struct tm *) malloc(sizeof(date));
-    memcpy(dateHp, &date, sizeof(date));
-
-    // Description
     char *descHp = (char *) malloc(strlen(desc) + 1);
     strcpy(descHp, desc);
-
-    // Expiration
-    struct tm *expHp = (struct tm *) malloc(sizeof(date));
-    memcpy(expHp, &exp, sizeof(exp));
-
-
-    // Repetition
-    Repetition *repHp = (Repetition *) malloc(sizeof(Repetition));
-    memcpy(repHp, &rep, sizeof(rep));
-    // TODO: Don't use malloc for this.
-
 
     // Build item.
     PlannerItem *item = (PlannerItem *) malloc(sizeof(PlannerItem));
 
-    item->date  = dateHp;
+    item->date  = date;
     item->desc  = descHp;
-    item->exp   = expHp;
-
-    item->rep   = repHp;
+    item->exp   = exp;
+    item->rep   = rep;
     item->done  = done;
 
     return item;
-}
-
-/**
- * Free PlannerItem without leaving dangling pointers.  Hopefully.
- *
- * @param   itm     The PlannerItem object to free.
- */
-void freeItem(PlannerItem *itm)
-{
-    free(itm->date);
-    free(itm->desc);
-    free(itm->rep);
-    free(itm->exp);
-
-    free(itm);
 }
