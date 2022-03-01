@@ -45,10 +45,16 @@ struct tm buildDate(int yr, int mn, int dy)
  * @param   desc    Description string.
  * @param   rep     Repetition, from enum.
  * @param   exp     Expiry, year zero if none.
+ * @param   done    "To-do" status.  (Described by struct doc.)
  */
-PlannerItem *buildItem(struct tm date, char *desc, Repetition rep, struct tm exp)
-{
-    // Copy items from stack to heap.
+PlannerItem *buildItem(
+    struct tm date,
+    char *desc,
+    Repetition rep,
+    struct tm exp,
+    char done
+) {
+    // Copy objects from stack to heap.
 
     // Date
     struct tm *dateHp = (struct tm *) malloc(sizeof(date));
@@ -58,13 +64,15 @@ PlannerItem *buildItem(struct tm date, char *desc, Repetition rep, struct tm exp
     char *descHp = (char *) malloc(strlen(desc) + 1);
     strcpy(descHp, desc);
 
-    // Repetition
-    Repetition *repHp = (Repetition *) malloc(sizeof(Repetition));
-    memcpy(repHp, &rep, sizeof(rep));
-
     // Expiration
     struct tm *expHp = (struct tm *) malloc(sizeof(date));
     memcpy(expHp, &exp, sizeof(exp));
+
+
+    // Repetition
+    Repetition *repHp = (Repetition *) malloc(sizeof(Repetition));
+    memcpy(repHp, &rep, sizeof(rep));
+    // TODO: Don't use malloc for this.
 
 
     // Build item.
@@ -72,8 +80,10 @@ PlannerItem *buildItem(struct tm date, char *desc, Repetition rep, struct tm exp
 
     item->date  = dateHp;
     item->desc  = descHp;
-    item->rep   = repHp;
     item->exp   = expHp;
+
+    item->rep   = repHp;
+    item->done  = done;
 
     return item;
 }

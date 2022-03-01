@@ -14,23 +14,26 @@ typedef enum planner_repenum
 
 typedef struct planner_itemstruct
 {
-    /** @var tm Date object. */
+    /** @var Date object. */
     struct tm *date;
 
     /** @var Description. */
     char *desc;
 
-    /** @var Repetition Type of repetition. */
+    /** @var Day of expiration.  0 if none. */
+    struct tm *exp;
+
+    /** @var Type of repetition. */
     Repetition *rep;
 
-    /** @var int Day of expiration.  0 if none. */
-    struct tm *exp;
+    /** @var 0 if needs to be done, 1 if done, -1 if n/a. */
+    char done;
 
 } PlannerItem;
 
 struct tm buildDate(int yr, int mn, int dy);
 
-PlannerItem *buildItem(struct tm date, char *desc, Repetition rep, struct tm exp);
+PlannerItem *buildItem(struct tm date, char *desc, Repetition rep, struct tm exp, char done);
 
 void freeItem(PlannerItem *item);
 

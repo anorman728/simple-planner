@@ -5,6 +5,8 @@
 
 #include "planner-functions.h"
 
+// Very primitive testing!  No framework atm.
+
 static void buildItemTest();
 
 static PlannerItem *buildItemDummyFunction();
@@ -52,11 +54,14 @@ static void buildItemTest()
     if (strcmp(itmDum->desc, "Planner description 436") != 0) {
         printf("FAILURE: desc property is wrong.\n");
     }
+    if (itmDum->exp->tm_mon != 5) {
+        printf("FAILURE: exp property is wrong.\n");
+    }
     if (*itmDum->rep != rep_W) {
         printf("FAILURE: rep property is wrong.\n");
     }
-    if (itmDum->exp->tm_mon != 5) {
-        printf("FAILURE: exp property is wrong.\n");
+    if (itmDum->done != -1) {
+        printf("FAILURE: done property is wrong.\n");
     }
 
     freeItem(itmDum);
@@ -78,5 +83,5 @@ static PlannerItem *buildItemDummyFunction()
     struct tm date = buildDate(103, 6, 1);
     struct tm exp = buildDate(103, 5, 1);
 
-    return buildItem(date, "Planner description 436", rep_W, exp);
+    return buildItem(date, "Planner description 436", rep_W, exp, -1);
 }
