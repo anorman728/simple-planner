@@ -48,6 +48,9 @@ static void buildItemTest()
 
     PlannerItem *itmDum = buildItemDummyFunction();
 
+    if (itmDum->id != 0) {
+        printf("FAILURE: id is wrong.\n");
+    }
     if (itmDum->date.tm_mon != 6) {
         printf("FAILURE: date property is wrong.\n");
     }
@@ -64,7 +67,7 @@ static void buildItemTest()
         printf("FAILURE: done property is wrong.\n");
     }
 
-    free(itmDum);
+    freeItem(itmDum);
 
     printf("Finished buildItemTest.\n");
 }
@@ -83,5 +86,5 @@ static PlannerItem *buildItemDummyFunction()
     struct tm date = buildDate(103, 6, 1);
     struct tm exp = buildDate(103, 5, 1);
 
-    return buildItem(date, "Planner description 436", rep_W, exp, -1);
+    return buildItem(0, date, "Planner description 436", rep_W, exp, -1);
 }

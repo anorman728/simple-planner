@@ -14,6 +14,9 @@ typedef enum planner_repenum
 
 typedef struct planner_itemstruct
 {
+    /** @var Id in database. */
+    long id;
+
     /** @var Date object. */
     struct tm date;
 
@@ -33,7 +36,14 @@ typedef struct planner_itemstruct
 
 struct tm buildDate(int yr, int mn, int dy);
 
-PlannerItem *buildItem(struct tm date, char *desc, Repetition rep, struct tm exp, char done);
+PlannerItem *buildItem(
+    long id,
+    struct tm date,
+    char *desc,
+    Repetition rep,
+    struct tm exp,
+    char done
+);
 
 void freeItem(PlannerItem *item);
 

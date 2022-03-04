@@ -41,6 +41,7 @@ struct tm buildDate(int yr, int mn, int dy)
 /**
  * Build a planner item object.
  *
+ * @param   id      Id from db.  Zero if new object.
  * @param   date    Date object, which should be built be buildDate
  * @param   desc    Description string.
  * @param   rep     Repetition, from enum.
@@ -48,6 +49,7 @@ struct tm buildDate(int yr, int mn, int dy)
  * @param   done    "To-do" status.  (Described by struct doc.)
  */
 PlannerItem *buildItem(
+    long id,
     struct tm date,
     char *desc,
     Repetition rep,
@@ -60,6 +62,7 @@ PlannerItem *buildItem(
     // Build item.
     PlannerItem *item = (PlannerItem *) malloc(sizeof(PlannerItem));
 
+    item->id    = id;
     item->date  = date;
     item->desc  = descHp;
     item->exp   = exp;
@@ -67,4 +70,15 @@ PlannerItem *buildItem(
     item->done  = done;
 
     return item;
+}
+
+/**
+ * Destroy PlannerItem object.
+ *
+ * @param   *PlannerItem    Object to destroy.
+ */
+void freeItem(PlannerItem *obj)
+{
+    free(obj->desc);
+    free(obj);
 }
