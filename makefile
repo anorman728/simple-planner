@@ -29,10 +29,10 @@ release:
 	@$(CC) $(P).c -l $(LDLIBS) -o $(RELDIR)/$(EXEC)
 
 testsqlite:
-	@$(CC) sqlite-testing.c $(CFLAGS) -l $(LDLIBS) -o sqlite-testing.run
+	@$(CC) sqlite-testing.c $(CFLAGS) -l $(LDLIBS) -o $(OUTDIR)/sqlite-testing.run
 
 testtime:
-	@$(CC) time-testing.c $(CFLAGS) -o time-testing.run
+	@$(CC) time-testing.c $(CFLAGS) -o $(OUTDIR)/time-testing.run
 
 test-planner-functions:
-	@$(CC) planner-functions-tests.c planner-functions.c $(CFLAGS) -o planner-functions-tests.run
+	@$(CC) planner-functions-tests.c planner-functions.c $(CFLAGS) -o $(OUTDIR)/planner-functions-tests.run
