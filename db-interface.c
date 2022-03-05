@@ -13,7 +13,7 @@ static void createDbV1();
  *
  * @param   filename    String representing filename path.
  */
-void initialize(char *filename)
+void db_interface_initialize(char *filename)
 {
     int rc = sqlite3_open(filename, &dbFile);
 
@@ -22,6 +22,14 @@ void initialize(char *filename)
     }
 
     updateDatabase();
+}
+
+/**
+ * Close the database file.
+ */
+void db_interface_finalize()
+{
+    sqlite3_close(dbFile);
 }
 
 // Static functions below this line.

@@ -2,5 +2,6 @@
 
 int main()
 {
-    initialize("./testing.db");
+    db_interface_initialize("./testing.db");
+    db_interface_finalize();
 }
