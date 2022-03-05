@@ -23,7 +23,7 @@ typedef struct planner_itemstruct
     /** @var Description. */
     char *desc;
 
-    /** @var Day of expiration.  Year 0 if none. */
+    /** @var Day of expiration.  Jan 1, 2000 if none. */
     struct tm exp;
 
     /** @var Type of repetition. */

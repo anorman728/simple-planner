@@ -1,0 +1,14 @@
+Since there are no column comments in SQLite, I'm putting descriptions in this file.
+
+meta -- Contains metadata, such as version number, etc.
+    name (text not null) -- Name of field.
+    desc (text not null) -- Description of field.
+    value (text not null) -- Value of field.
+
+items -- Contains all planner items.
+    id (integer primary key autoincrement)
+    date (integer not null) -- Date that the item takes place.  In the database, the format is number of days since Jan 1, 2000.
+    desc (text) -- The description.
+    rep (integer not null) -- Repetition, matching an enum value in planner-functions.h.
+    exp (integer not null) -- Date that the item expires.  In the database, the format is the number of days since Jan 1, 2000.  Set to zero if no expiration.
+    done (integer not null) -- "Done" status.  0 if needs to be done, 1 if already done, -1 if not applicable.
