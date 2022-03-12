@@ -14,8 +14,6 @@ typedef struct date_obj {
 
 int toInt(Date dateObj);
 
-int YearsToDays(Date dateObj);
-
-int MonthsToDays(Date dateObj);
+Date toDate(int dateInt);
 
 #endif

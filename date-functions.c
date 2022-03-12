@@ -6,86 +6,55 @@
 // problems than it solves.  I do not want to have to work around DST or time
 // zones and I don't need anything more precise than days of the year.
 
-static int monthdays(int mon, int isleap);
+/**
+ * The maximum number of days in a month, and a modulo base we use for
+ * conversions to integers.
+ */
+const int DAYMOD = 31;
 
 /**
- * Convert a Date object to an integer, being the number of days since Jan 1,
- * 2000.
+ * The maximum number of months in a year, and a factor in the modulo base we
+ * use for conversion to integers.
+ */
+const int MONTHMOD = 12;
+
+/**
+ * Convert a Date object to an integer.
+ *
+ * Integer is not human-readable as a date, but it orders the same way.
  *
  * @param   dateObj
  */
 int toInt(Date dateObj)
 {
-    int total = 0;
+    // These integers work by a kind of dual-modular reduction.
+    // There are, at most, 31 days in a month.  That means it's mod 31, so 0 -
+    // 30.  If the number is 31, that means we're on the first day of the
+    // second month.  Similarly, there are 12 months in a year, but our base is
+    // days, so there are 12 * 31 = 372 "days" in a year (counting invalid days
+    // like Feb 30th).  So that means that if we're on day 373, we know we're on
+    // the first day of the second year.
 
-    total+= YearsToDays(dateObj);
-    total+= MonthsToDays(dateObj);
-    total+= dateObj.day;
-
-    return total;
+    //return dateObj.day + DAYMOD * dateObj.month + (MONTHMOD * DAYMOD) * dateObj.year;
+    // Keeping commented version because it's clearer than below.
+    return dateObj.day + DAYMOD * (dateObj.month + MONTHMOD * dateObj.year);
 }
 
 /**
- * Count up the number of days that have passed when reach a given year.
+ * Convert an integer back to a Date object.
  *
- * @param   dateObj
+ * @param   dateInt
  */
-int YearsToDays(Date dateObj)
+Date toDate(int dateInt)
 {
-    if (dateObj.year == 0) {
-        return 0;
-    }
+    // See comment in toInt to see how this works.  Deconstructing is basic
+    // number theory.
 
-    int total = 365 * dateObj.year;
+    Date dateObj = {};
 
-    // Add in leap years.
-    int leapYears = (dateObj.year - 1) / 4 + 1;
-    // Number of *passed* leap years, so need to subtract one.
+    dateObj.day = dateInt % DAYMOD;
+    dateObj.month = (dateInt - dateObj.day) / DAYMOD % MONTHMOD;
+    dateObj.year = (dateInt - dateObj.day - DAYMOD * dateObj.month) / (MONTHMOD * DAYMOD);
 
-    total+= leapYears;
-
-    return total;
+    return dateObj;
 }
-
-/**
- * Count up the number of days that have passed in a year when reached a given
- * month.
- *
- * @param   dateObj
- */
-int MonthsToDays(Date dateObj)
-{
-    int total = 0;
-
-    int mon = dateObj.month;
-    while (mon != 0) {
-        total+= monthdays(--mon, (dateObj.year % 4) == 0);
-    }
-
-    return total;
-}
-
-
-// Helper functions below this line.
-
-/**
- * Return the number of days for a given month.
- *
- * @param   mon     The month, 0-11.
- * @param   isleap  1 if leapyear.
- */
-static int monthdays(int mon, int isleap)
-{
-    switch (mon) {
-        case 1:
-            return (isleap ? 29 : 28);
-        case 3:
-        case 5:
-        case 8:
-        case 10:
-            return 30;
-        default:
-            return 31;
-    }
-}
-

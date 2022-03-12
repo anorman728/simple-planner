@@ -1,52 +1,56 @@
 #include <stdio.h>
+#include <time.h>
 
 #include "date-functions.h"
 
 void testYearsToDays();
 void testMonthsToDays();
 
+void testIntConvert();
+
 int main()
 {
-    testYearsToDays();
-    testMonthsToDays();
+    testIntConvert();
 }
 
-void testYearsToDays()
+void testIntConvert()
 {
-    Date dateObj = {};
-    dateObj.month = 0;
-    dateObj.day = 0;
+    struct tm baseDate = {};
+    baseDate.tm_year = 101;
+    baseDate.tm_mon = 0;
+    //baseDate.tm_mday = 0;
+    baseDate.tm_hour = 6; // To avoid DST nonsense.
 
-    int result;
+    struct tm dumDate;
 
-    int yearexp[24] = { // year / exp pairs.
-        2000, 0,
-        2001, 366,
-        2002, 731,
-        2003, 1096,
-        2004, 1461,
-        2005, 1827,
-        2006, 2192,
-        2007, 2557,
-        2008, 2922,
-        2009, 3288,
-        2010, 3653,
-        2011, 4018
-    };
-    // This is a poor man's associative array...  Or rather a destitute man's
-    // associative array.
+    int date;
+    Date testObj;
 
-    for (int i = 0; i < 24; i += 2) {
-        dateObj.year = yearexp[i] - 2000;
-        result = YearsToDays(dateObj);
+    for (int i = 0; i < 37200; i++) { // 37200 = 100 years (technically well over).
+        dumDate = baseDate;
+        dumDate.tm_mday = i;
+        mktime(&dumDate);
 
-        if (result != yearexp[i+1]) {
-            printf("Wrong result for %d: %d\n", yearexp[i], result);
+        testObj.year = dumDate.tm_year - 99;
+        testObj.month = dumDate.tm_mon;
+        testObj.day = dumDate.tm_mday - 1;
+
+        date = toInt(testObj);
+
+        Date resultObj;
+        resultObj = toDate(date);
+
+        // TODO: Better messages here.  (Can use asctime with dumDate.)
+        if (resultObj.year != testObj.year) {
+            printf("Year should be %d, but found %d.\n", testObj.year, resultObj.year);
+        }
+
+        if (resultObj.month != testObj.month) {
+            printf("Month should be %d, but found %d.\n", testObj.month, resultObj.month);
+        }
+
+        if (resultObj.day != testObj.day) {
+            printf("Day should be %d, but found %d.\n", testObj.day, resultObj.day);
         }
     }
-}
-
-void testMonthsToDays()
-{
-    // TODO
 }
