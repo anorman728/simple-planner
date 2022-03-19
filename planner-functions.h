@@ -30,7 +30,7 @@ typedef struct planner_itemstruct
     Repetition rep;
 
     /** @var 0 if needs to be done, 1 if done, -1 if n/a. */
-    char done;
+    char done; // TODO: This needs to be changed to short!  I decided I shouldn't use chars like this.
 
 } PlannerItem;
 

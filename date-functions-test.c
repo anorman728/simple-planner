@@ -10,11 +10,13 @@ void testMonthsToDays();
 void testToInt();
 void testToIntErrorHandling();
 void testToIntErrorHandlingHelper();
+void testGetWeekday();
 
 int main()
 {
     testToInt();
     testToIntErrorHandling();
+    testGetWeekday();
 }
 
 /**
@@ -111,6 +113,27 @@ void testToIntErrorHandling()
     testToIntErrorHandlingHelper("year range", dateObj);
 
     printf("Finished testToIntErrorHandling.\n");
+}
+
+/**
+ * Test getWeekday function.
+ */
+void testGetWeekday()
+{
+    printf("Starting testGetWeekday.\n");
+
+    Date dateObj = {};
+    dateObj.day = 17;
+    dateObj.month = 2;
+    dateObj.year = 21;
+
+    int res;
+
+    if ((res = getWeekday(dateObj)) != 5) {
+        printf("FAILURE expected 5 (Friday), but found %d.\n", res);
+    }
+
+    printf("Finished testGetWeekday.\n");
 }
 
 

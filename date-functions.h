@@ -16,4 +16,6 @@ int toInt(Date dateObj);
 
 Date toDate(int dateInt);
 
+int getWeekday(Date dateObj);
+
 #endif

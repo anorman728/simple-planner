@@ -1,10 +1,13 @@
-#include <stdio.h>
+#include<stdio.h>
+#include<time.h>
 
 #include "date-functions.h"
 
 // I needed to make this because the `struct tm` object was causing more
 // problems than it solves.  I do not want to have to work around DST or time
 // zones and I don't need anything more precise than days of the year.
+// `struct tm` is actually used, though, within the static functions, to be
+// able to find things like the the weekday, the date range of a week, etc.
 
 /**
  * The maximum number of days in a month, and a modulo base we use for
@@ -23,7 +26,9 @@ const char MININTSIZE = 4;
 
 
 // Forward declarations for helper functions.
-int toIntErrorHandling(Date dateObj);
+static char toIntErrorHandling(Date dateObj);
+static struct tm dateToTm(Date dateObj);
+static Date tmToDate(struct tm tmObj);
 
 
 /**
@@ -73,6 +78,23 @@ Date toDate(int dateInt)
     return dateObj;
 }
 
+/**
+ * Find the weekday of a date object.
+ *
+ * @param   dateObj
+ */
+int getWeekday(Date dateObj)
+{
+    struct tm dumval = dateToTm(dateObj);
+
+    return dumval.tm_wday;
+}
+
+// TODO: Get weekday desc. (Mon, Tue, etc.)
+// TODO: Get single-char weekday. (M, T, etc.)
+// Note: Above two might be outside the scope of this module.  Maybe
+// something closer to the user should handle it.
+
 
 // Helper functions below this line.
 
@@ -82,7 +104,7 @@ Date toDate(int dateInt)
  *
  * @param   dateObj
  */
-int toIntErrorHandling(Date dateObj)
+static char toIntErrorHandling(Date dateObj)
 {
     if (sizeof(int) < MININTSIZE) {
         fprintf(stderr, "date-functions.toInt: This platform is not" \
@@ -106,11 +128,46 @@ int toIntErrorHandling(Date dateObj)
         return 1;
     }
     if (dateObj.year > 5772804) {
-        fprintf(stderr, "Year is out of range.  Found %d.  And there's no" \
+        fprintf(stderr, "Year is out of range.  Found %d.  And there's no " \
         " way this program is still going to be used in this year anyway.\n",
         dateObj.year);
         return 1;
     }
 
     return 0;
+}
+
+/**
+ * Convert a Date object to a struct tm object.
+ *
+ * @param   dateObj
+ */
+static struct tm dateToTm(Date dateObj)
+{
+    struct tm returnVal = {};
+
+    returnVal.tm_mday      = dateObj.day + 1;
+    returnVal.tm_mon       = dateObj.month;
+    returnVal.tm_year      = dateObj.year + 101;
+    returnVal.tm_isdst     = -1;
+
+    mktime(&returnVal);
+
+    return returnVal;
+}
+
+/**
+ * Convert a struct tm object to a Date object.
+ *
+ * @param   tmObj
+ */
+static Date tmToDate(struct tm tmObj)
+{
+    Date returnVal = {};
+
+    returnVal.day   = tmObj.tm_mday - 1;
+    returnVal.month = tmObj.tm_mon;
+    returnVal.year  = tmObj.tm_year - 101;
+
+    return returnVal;
 }
