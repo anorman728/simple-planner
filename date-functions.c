@@ -8,18 +8,28 @@
 
 /**
  * The maximum number of days in a month, and a modulo base we use for
- * conversions to integers.
+ * conversions to and from integers.
  */
 const int DAYMOD = 31;
 
 /**
- * The maximum number of months in a year, and a factor in the modulo base we
- * use for conversion to integers.
+ * The maximum number of months in a year, and a factor in a modulo base we
+ * use for conversion to and from integers.
  */
 const int MONTHMOD = 12;
 
+/** The minimum size that this module needs an `int` type to be (in bytes). */
+const char MININTSIZE = 4;
+
+
+// Forward declarations for helper functions.
+int toIntErrorHandling(Date dateObj);
+
+
 /**
- * Convert a Date object to an integer.
+ * Convert a Date object to an integer.  Returns negative one on error.
+ *
+ * Note that due to -1 being error, it is not compatible with dates before 2001.
  *
  * Integer is not human-readable as a date, but it orders the same way.
  *
@@ -34,6 +44,10 @@ int toInt(Date dateObj)
     // days, so there are 12 * 31 = 372 "days" in a year (counting invalid days
     // like Feb 30th).  So that means that if we're on day 373, we know we're on
     // the first day of the second year.
+
+    if (toIntErrorHandling(dateObj)) {
+        return -1;
+    }
 
     //return dateObj.day + DAYMOD * dateObj.month + (MONTHMOD * DAYMOD) * dateObj.year;
     // Keeping commented version because it's clearer than below.
@@ -57,4 +71,46 @@ Date toDate(int dateInt)
     dateObj.year = (dateInt - dateObj.day - DAYMOD * dateObj.month) / (MONTHMOD * DAYMOD);
 
     return dateObj;
+}
+
+
+// Helper functions below this line.
+
+/**
+ * Check the dateObj in toInt for errors, to make sure to crash early.
+ * Returns true if there are errors.
+ *
+ * @param   dateObj
+ */
+int toIntErrorHandling(Date dateObj)
+{
+    if (sizeof(int) < MININTSIZE) {
+        fprintf(stderr, "date-functions.toInt: This platform is not" \
+        " compatible with this module.  Requires int size to be at least" \
+        " %d\n", MININTSIZE);
+        return 1;
+    }
+
+    if (dateObj.day < 0 || dateObj.month < 0 || dateObj.year < 0) {
+        fprintf(stderr, "Cannot convert negative values into integer for" \
+        " d/m/y.  Found %d/%d/%d.\n", dateObj.day, dateObj.month, dateObj.year);
+        return 1;
+    }
+
+    if (dateObj.day > 30) {
+        fprintf(stderr, "Day out of range.  Found %d.\n", dateObj.day);
+        return 1;
+    }
+    if (dateObj.month > 11) {
+        fprintf(stderr, "Month out of range.  Found %d.\n", dateObj.month);
+        return 1;
+    }
+    if (dateObj.year > 5772804) {
+        fprintf(stderr, "Year is out of range.  Found %d.  And there's no" \
+        " way this program is still going to be used in this year anyway.\n",
+        dateObj.year);
+        return 1;
+    }
+
+    return 0;
 }
