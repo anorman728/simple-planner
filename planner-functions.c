@@ -6,43 +6,13 @@
 
 #include "planner-functions.h"
 
-/**
- * Build a date from the year, month, and day.
- *
- * @param   yr  Year, count since 1900 (i.e., 2013 is 113).
- * @param   mn  Month, 0 - 11 (non-human-friendly version)
- * @param   dy  Day
- */
-struct tm buildDate(int yr, int mn, int dy)
-{
-    // I considered putting the "human-friendly" version of these numbers here,
-    // so user would put in 1-12 for months and something like 2013 instead of
-    // 113 for the year, but I decided that that kind of conversion is best
-    // handled exclusively by the frontend.
-
-    struct tm returnVal = {};
-
-    returnVal.tm_year = yr;
-    returnVal.tm_mon = mn;
-    returnVal.tm_mday = dy;
-
-    returnVal.tm_hour = 0;
-    returnVal.tm_min = 0;
-    returnVal.tm_sec = 0;
-    returnVal.tm_isdst = -1;
-    // We're not concerned about anything more precise than the day, so DST just
-    // gets in the way.
-
-    mktime(&returnVal);
-
-    return returnVal;
-}
+#include "date-functions.h"
 
 /**
  * Build a planner item object.
  *
  * @param   id      Id from db.  Zero if new object.
- * @param   date    Date object, which should be built be buildDate
+ * @param   dateObj Date object.
  * @param   desc    Description string.
  * @param   rep     Repetition, from enum.
  * @param   exp     Expiry, year zero if none.
@@ -50,10 +20,10 @@ struct tm buildDate(int yr, int mn, int dy)
  */
 PlannerItem *buildItem(
     long id,
-    struct tm date,
+    Date dateObj,
     char *desc,
     Repetition rep,
-    struct tm exp,
+    Date exp,
     char done
 ) {
     char *descHp = (char *) malloc(strlen(desc) + 1);
@@ -63,7 +33,7 @@ PlannerItem *buildItem(
     PlannerItem *item = (PlannerItem *) malloc(sizeof(PlannerItem));
 
     item->id    = id;
-    item->date  = date;
+    item->date  = dateObj;
     item->desc  = descHp;
     item->exp   = exp;
     item->rep   = rep;

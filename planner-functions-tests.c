@@ -5,6 +5,8 @@
 
 #include "planner-functions.h"
 
+#include "date-functions.h"
+
 // Very primitive testing!  No framework atm.
 
 static void buildItemTest();
@@ -33,7 +35,7 @@ int sandboxing()
     mktime(datedum);
 
     free(datedum);
-    
+
     return 0;
 }
 
@@ -51,13 +53,13 @@ static void buildItemTest()
     if (itmDum->id != 0) {
         printf("FAILURE: id is wrong.\n");
     }
-    if (itmDum->date.tm_mon != 6) {
+    if (itmDum->date.month != 6) {
         printf("FAILURE: date property is wrong.\n");
     }
     if (strcmp(itmDum->desc, "Planner description 436") != 0) {
         printf("FAILURE: desc property is wrong.\n");
     }
-    if (itmDum->exp.tm_mon != 5) {
+    if (itmDum->exp.month != 5) {
         printf("FAILURE: exp property is wrong.\n");
     }
     if (itmDum->rep != rep_W) {
@@ -83,8 +85,8 @@ static void buildItemTest()
  */
 static PlannerItem *buildItemDummyFunction()
 {
-    struct tm date = buildDate(103, 6, 1);
-    struct tm exp = buildDate(103, 5, 1);
+    Date dateObj = buildDate(103, 6, 1);
+    Date exp = buildDate(103, 5, 1);
 
-    return buildItem(0, date, "Planner description 436", rep_W, exp, -1);
+    return buildItem(0, dateObj, "Planner description 436", rep_W, exp, -1);
 }

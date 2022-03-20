@@ -1,7 +1,7 @@
 #ifndef plannerfunctions_h
 #define plannerfunctions_h
 
-#include <time.h>
+#include "date-functions.h"
 
 typedef enum planner_repenum
 {
@@ -17,31 +17,29 @@ typedef struct planner_itemstruct
     /** @var Id in database. */
     long id;
 
-    /** @var Date object. */
-    struct tm date;
+    /** @var Date event takes place. */
+    Date date;
 
     /** @var Description. */
     char *desc;
 
     /** @var Day of expiration.  Jan 1, 2000 if none. */
-    struct tm exp;
+    Date exp;
 
     /** @var Type of repetition. */
     Repetition rep;
 
     /** @var 0 if needs to be done, 1 if done, -1 if n/a. */
-    char done; // TODO: This needs to be changed to short!  I decided I shouldn't use chars like this.
+    short done;
 
 } PlannerItem;
 
-struct tm buildDate(int yr, int mn, int dy);
-
 PlannerItem *buildItem(
     long id,
-    struct tm date,
+    Date dateObj,
     char *desc,
     Repetition rep,
-    struct tm exp,
+    Date exp,
     char done
 );
 

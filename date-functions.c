@@ -30,6 +30,25 @@ static char toIntErrorHandling(Date dateObj);
 static struct tm dateToTm(Date dateObj);
 static Date tmToDate(struct tm tmObj);
 
+/**
+ * Build a date from the year, month, and day.
+ *
+ * @param   yr  Year, count since 2001 (i.e., 2013 is 12).
+ * @param   mn  Month, 0-11
+ * @param   dy  Day of month
+ */
+Date buildDate(int yr, int mn, int dy)
+{
+    // TODO: Write test.  It's too simplistic right now for me to be
+    // concerned about it.
+
+    Date returnVal = {};
+    returnVal.year = yr;
+    returnVal.month = mn;
+    returnVal.day = dy;
+
+    return returnVal;
+}
 
 /**
  * Convert a Date object to an integer.  Returns negative one on error.

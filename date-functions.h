@@ -12,6 +12,8 @@ typedef struct date_obj {
     int day;
 } Date;
 
+Date buildDate(int yr, int mn, int dy);
+
 int toInt(Date dateObj);
 
 Date toDate(int dateInt);

@@ -35,7 +35,7 @@ testtime:
 	@$(CC) time-testing.c $(CFLAGS) -o $(OUTDIR)/time-testing.run
 
 test-planner-functions:
-	@$(CC) planner-functions-tests.c planner-functions.c $(CFLAGS) -o $(OUTDIR)/planner-functions-tests.run
+	@$(CC) planner-functions-tests.c planner-functions.c date-functions.c $(CFLAGS) -o $(OUTDIR)/planner-functions-tests.run
 
 test-db-interface:
 	@$(CC) db-interface-tests.c db-interface.c planner-functions.c $(CFLAGS) -l $(LDLIBS) -o $(OUTDIR)/db-interface-tests.run
