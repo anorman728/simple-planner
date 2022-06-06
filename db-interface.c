@@ -83,11 +83,11 @@ static void createDbV1()
     char *zErrMsg;
 
     // Create meta table.
-    sqldum = "CREATE TABLE meta( \
-        name TEXT NOT NULL, \
-        desc TEXT NOT NULL, \
-        value TEXT NOT NULL \
-    );";
+    sqldum = "CREATE TABLE meta("
+        " name TEXT NOT NULL,"
+        " desc TEXT NOT NULL,"
+        " value TEXT NOT NULL"
+    ");";
 
     rc = sqlite3_exec(dbFile, sqldum, 0, 0, &zErrMsg);
     if (rc) {
@@ -96,15 +96,15 @@ static void createDbV1()
     sqlite3_free(zErrMsg);
 
     // Put version into meta table.
-    sqldum = "INSERT INTO meta( \
-        name, \
-        desc, \
-        value \
-    ) VALUES( \
-        \"version\", \
-        \"The version number.\", \
-        \"1\" \
-    );";
+    sqldum = "INSERT INTO meta("
+        " name,"
+        " desc,"
+        " value"
+    ") VALUES("
+        " \"version\","
+        " \"The version number.\","
+        " \"1\""
+    ");";
 
     rc = sqlite3_exec(dbFile, sqldum, 0, 0, &zErrMsg);
     if (rc) {
@@ -113,14 +113,14 @@ static void createDbV1()
     sqlite3_free(zErrMsg);
 
     // Create planner_items table.
-    sqldum = "CREATE TABLE items( \
-        id INTEGER PRIMARY KEY AUTOINCREMENT, \
-        date INTEGER NOT NULL, \
-        desc TEXT, \
-        rep INTEGER NOT NULL, \
-        exp INTEGER NOT NULL, \
-        done INTEGER NOT NULL \
-    );";
+    sqldum = "CREATE TABLE items("
+        " id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        " date INTEGER NOT NULL,"
+        " desc TEXT,"
+        " rep INTEGER NOT NULL,"
+        " exp INTEGER NOT NULL,"
+        " done INTEGER NOT NULL"
+    ");";
     rc = sqlite3_exec(dbFile, sqldum, 0, 0, &zErrMsg);
     if (rc) {
         fprintf(stderr, "Error while creating \"items\" table: %s\n.", zErrMsg);
