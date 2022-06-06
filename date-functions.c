@@ -28,7 +28,7 @@ const char MININTSIZE = 4;
 // Forward declarations for helper functions.
 static char toIntErrorHandling(Date dateObj);
 static struct tm dateToTm(Date dateObj);
-static Date tmToDate(struct tm tmObj);
+//static Date tmToDate(struct tm tmObj);
 
 /**
  * Build a date from the year, month, and day.
@@ -115,7 +115,7 @@ int getWeekday(Date dateObj)
 // something closer to the user should handle it.
 
 
-// Helper functions below this line.
+// Static functions below this line.
 
 /**
  * Check the dateObj in toInt for errors, to make sure to crash early.
@@ -180,13 +180,14 @@ static struct tm dateToTm(Date dateObj)
  *
  * @param   tmObj
  */
-static Date tmToDate(struct tm tmObj)
-{
-    Date returnVal = {};
-
-    returnVal.day   = tmObj.tm_mday - 1;
-    returnVal.month = tmObj.tm_mon;
-    returnVal.year  = tmObj.tm_year - 101;
-
-    return returnVal;
-}
+// Currently commented out because it's not being used and it's static.
+//static Date tmToDate(struct tm tmObj)
+//{
+//    Date returnVal = {};
+//
+//    returnVal.day   = tmObj.tm_mday - 1;
+//    returnVal.month = tmObj.tm_mon;
+//    returnVal.year  = tmObj.tm_year - 101;
+//
+//    return returnVal;
+//}
