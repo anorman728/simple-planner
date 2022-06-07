@@ -6,9 +6,23 @@
 #include "db-interface.h"
 #include "planner-functions.h"
 
+void testSavingMultipleRecords();
+void deleteFileIfExists(char *filename);
+
+char *testDb = "./testing.db";
+
 int main()
 {
-    db_interface_initialize("./testing.db");
+    testSavingMultipleRecords();
+
+    deleteFileIfExists(testDb);
+}
+
+void testSavingMultipleRecords()
+{
+    deleteFileIfExists(testDb);
+
+    db_interface_initialize(testDb);
 
     char *desc = "test entry 9631";
 
@@ -91,4 +105,17 @@ int main()
     freeItem(secondRec);
 
     db_interface_finalize();
+}
+
+
+// Helper functions below this line.
+
+void deleteFileIfExists(char *filename)
+{
+    FILE *file;
+
+    if ((file = fopen(filename, "r"))) {
+        fclose(file);
+        remove(filename);
+    }
 }
