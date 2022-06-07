@@ -145,6 +145,9 @@ int main(int argc, char *argv[])
         // This one starts at zero even though the prepared statements starts at
         // one.  No idea why.
         // There's also other data types besides text-- https://www.sqlite.org/c3ref/column_blob.html
+
+        // The value returned by sqlite3_column_text is const *char, so will
+        // probably need to cast it to (char *) to assign it.
     }
     sqlite3_finalize(stmt);
     printf("Done testing prepared statement.\n");
