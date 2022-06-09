@@ -20,6 +20,8 @@ int main()
 
 void testSavingMultipleRecords()
 {
+    printf("Starting testSavingMultipleRecords.\n");
+
     deleteFileIfExists(testDb);
 
     db_interface_initialize(testDb);
@@ -105,6 +107,8 @@ void testSavingMultipleRecords()
     freeItem(secondRec);
 
     db_interface_finalize();
+
+    printf("Completed testSavingMultipleRecords.\n");
 }
 
 

@@ -3,6 +3,11 @@
 
 #include "date-functions.h"
 
+// REMINDER: Never use memcpy with a PlannerItem object!  The char pointer
+// screws that up.  If need to do that, then will need to make a special
+// function in the same way that I needed to make a special function for freeing
+// the object.
+
 typedef enum planner_repenum
 {
     rep_D, // daily
