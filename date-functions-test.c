@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "date-functions.h"
@@ -8,6 +10,8 @@ void testMonthsToDays();
 
 // Forward declarations for helper functions.
 void testToInt();
+void testToString();
+void testToDate();
 void testToIntErrorHandling();
 void testToIntErrorHandlingHelper();
 void testGetWeekday();
@@ -15,6 +19,7 @@ void testGetWeekday();
 int main()
 {
     testToInt();
+    testToString();
     testToIntErrorHandling();
     testGetWeekday();
 }
@@ -70,6 +75,26 @@ void testToInt()
     }
 
     printf("Finished testToInt.\n");
+}
+
+/**
+ * Test toString.
+ */
+void testToString()
+{
+    printf("Starting testToString.\n");
+
+    Date testObj = buildDate(3, 5, 21); // June 22, 2004.
+
+    char *result = toString(testObj);
+
+    if (strcmp(result, "2004-06-22") != 0) {
+        printf("FAILURE: Found %s\n.", result);
+    }
+
+    free(result);
+
+    printf("Finished testToString.\n");
 }
 
 /**

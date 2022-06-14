@@ -67,7 +67,7 @@ void db_interface_save(PlannerItem *items[], int amt)
  */
 PlannerItem *db_interface_get(int id)
 {
-    int vals[0];
+    int vals[1];
     vals[0] = id;
 
     PlannerItem **dumval = getFromWhere("id = ?", vals, 1);
@@ -93,15 +93,14 @@ PlannerItem *db_interface_get(int id)
  * @param   lower   Lower bound (inclusive)
  * @param   upper   Upper bound (inclusive)
  */
-//PlannerItem **db_interface_range(Date lower, Date upper)
-//{
-//    char *sqldum = "SELECT id,date,desc,rep,exp,done FROM items WHERE date >= ?"
-//     " AND date <= ?";
-//
-//     sqlite3_stmt *stmt;
-//
-//     sqlite3_prepare_v2(dbFile, sqldum, -1, &stmt, 0);
-//}
+PlannerItem **db_interface_range(Date lower, Date upper)
+{
+    int vals[2];
+    vals[0] = toInt(upper);
+    vals[1] = toInt(lower);
+
+    return getFromWhere("date <= ? AND date >= ?", vals, 2);
+}
 
 
 // Static functions below this line.

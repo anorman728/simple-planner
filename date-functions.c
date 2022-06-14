@@ -1,4 +1,6 @@
 #include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
 #include<time.h>
 
 #include "date-functions.h"
@@ -35,7 +37,7 @@ static struct tm dateToTm(Date dateObj);
  *
  * @param   yr  Year, count since 2001 (i.e., 2013 is 12).
  * @param   mn  Month, 0-11
- * @param   dy  Day of month
+ * @param   dy  Day of month, 0 - 30.
  */
 Date buildDate(int yr, int mn, int dy)
 {
@@ -76,6 +78,21 @@ int toInt(Date dateObj)
     //return dateObj.day + DAYMOD * dateObj.month + (MONTHMOD * DAYMOD) * dateObj.year;
     // Keeping commented version because it's clearer than below.
     return dateObj.day + DAYMOD * (dateObj.month + MONTHMOD * dateObj.year);
+}
+
+/**
+ * Convert Date object to a string in form Y-m-d.
+ *
+ * @param   dateObj
+ */
+char *toString(Date dateObj)
+{
+    // Don't forget the null terminator!
+    char *ret = malloc(11 * (sizeof ret));
+
+    sprintf(ret, "%04d-%02d-%02d", (dateObj.year + 2001), dateObj.month + 1, dateObj.day + 1);
+
+    return ret;
 }
 
 /**
@@ -147,7 +164,7 @@ static char toIntErrorHandling(Date dateObj)
         return 1;
     }
     if (dateObj.year > 5772804) {
-        fprintf(stderr, "Year is out of range.  Found %d.  And there's no " \
+        fprintf(stderr, "Year is out of range.  Found %d.  And there's no" \
         " way this program is still going to be used in this year anyway.\n",
         dateObj.year);
         return 1;

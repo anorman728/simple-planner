@@ -16,6 +16,8 @@ Date buildDate(int yr, int mn, int dy);
 
 int toInt(Date dateObj);
 
+char *toString(Date dateObj);
+
 Date toDate(int dateInt);
 
 int getWeekday(Date dateObj);

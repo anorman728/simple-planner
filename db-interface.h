@@ -11,4 +11,6 @@ void db_interface_save(PlannerItem *items[], int amt);
 
 PlannerItem *db_interface_get(int id);
 
+PlannerItem **db_interface_range(Date lower, Date upper);
+
 #endif

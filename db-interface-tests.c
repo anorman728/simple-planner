@@ -7,6 +7,7 @@
 #include "planner-functions.h"
 
 void testSavingMultipleRecords();
+void testGettingRecordsFromRange();
 void deleteFileIfExists(char *filename);
 
 char *testDb = "./testing.db";
@@ -14,6 +15,7 @@ char *testDb = "./testing.db";
 int main()
 {
     testSavingMultipleRecords();
+    testGettingRecordsFromRange();
 
     deleteFileIfExists(testDb);
 }
@@ -30,7 +32,7 @@ void testSavingMultipleRecords()
 
     PlannerItem *testObj = buildItem(
         0,
-        buildDate(2022, 6, 5),
+        buildDate(22, 6, 5),
         desc,
         rep_N,
         buildDate(0, 1, 1),
@@ -66,10 +68,10 @@ void testSavingMultipleRecords()
 
     PlannerItem *testObj2 = buildItem(
         0,
-        buildDate(2012, 7, 15),
+        buildDate(12, 7, 15),
         desc,
         rep_W,
-        buildDate(2031, 1, 1),
+        buildDate(31, 1, 1),
         -1
     );
 
@@ -109,6 +111,82 @@ void testSavingMultipleRecords()
     db_interface_finalize();
 
     printf("Completed testSavingMultipleRecords.\n");
+}
+
+void testGettingRecordsFromRange()
+{
+    printf("Starting tetGettingMultipleRecords.\n");
+
+    deleteFileIfExists(testDb);
+    db_interface_initialize(testDb);
+
+    // Build multiple items to put into db.
+
+    PlannerItem **testArr = malloc(4 * (sizeof *testArr));
+
+    char *inRes = "In results";
+    char *notInRes = "Not in results.";
+
+    testArr[0] = buildItem(
+        0,
+        buildDate(22, 6, 1),
+        notInRes,
+        rep_N, // Doesn't matter.
+        buildDate(0, 1, 1), // Doesn't matter.
+        -1 // Doesn't matter
+    );
+    testArr[1] = buildItem(
+        0,
+        buildDate(22, 6, 5),
+        inRes,
+        rep_N, // Doesn't matter.
+        buildDate(0, 1, 1), // Doesn't matter.
+        -1
+    );
+    testArr[2] = buildItem(
+        0,
+        buildDate(22, 6, 10),
+        inRes,
+        rep_N, // Doesn't matter.
+        buildDate(0, 1, 1), // Doesn't matter.
+        -1
+    );
+    testArr[3] = buildItem(
+        0,
+        buildDate(22, 6, 15),
+        notInRes,
+        rep_N, // Doesn't matter.
+        buildDate(0, 1, 1), // Doesn't matter.
+        -1
+    );
+
+    db_interface_save(testArr, 4);
+    freeAll(testArr, 4);
+    // Go ahead and destroy these; we're going to find them in the database.
+
+    PlannerItem **resultArr = db_interface_range(
+        buildDate(22,6,5),
+        buildDate(22,6,10)
+    );
+
+    int i = 0;
+
+    while (resultArr[i] != NULL) {
+        if (strcmp(resultArr[i]->desc, inRes) != 0) {
+            char *date = toString(resultArr[i]->date);
+            printf("Found invalid desc in results! In date %s.\n", date);
+            free(date);
+        }
+        i++;
+    }
+
+    freeAll(resultArr, 3);
+    // I just happen to know that there are three for this.  Will be removed in
+    // future version.
+
+    db_interface_finalize();
+
+    printf("Completed testGettingRecordsFromRange.\n");
 }
 
 
