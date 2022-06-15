@@ -24,9 +24,11 @@ static void createDbV1();
  */
 void db_interface_initialize(char *filename)
 {
+    // TODO: Return int with status.
     int rc = sqlite3_open(filename, &dbFile);
 
     if (rc) {
+        // TODO: Return error status here.
         fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(dbFile));
     }
 
@@ -157,6 +159,7 @@ static void saveExisting(PlannerItem *item)
     sqlite3_bind_int(stmt,6, item->id);
 
     sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
 }
 
 /**
