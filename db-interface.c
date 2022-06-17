@@ -44,7 +44,7 @@ void db_interface_finalize()
 }
 
 /**
- * Save amt of the items.
+ * Save array of PlannerItem objects.
  *
  * @param   items   Array of items to save.
  */
@@ -76,13 +76,8 @@ PlannerItem *db_interface_get(int id)
 
     PlannerItem *returnVal = dumval[0];
 
-    //free(dumval[1]);
-    // This is a null pointer.  I'm not 100% sure freeing it is necessary,
-    // because neither having it here nor not having it will generate an error
-    // or warning.
-    // Update: I read online that this does nothing.
-
     free(dumval); // Need to free the array itself, since it's on the heap.
+    // Don't need to free second object.  It's a null pointer.
 
     return returnVal;
 }
