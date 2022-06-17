@@ -46,19 +46,19 @@ void db_interface_finalize()
 /**
  * Save amt of the items.
  *
- * TODO: To be consistent with the range method, make last object null pointer.
- *
  * @param   items   Array of items to save.
- * @param   amt     Number of items to save.
  */
-void db_interface_save(PlannerItem *items[], int amt)
+void db_interface_save(PlannerItem *items[])
 {
-    for (int i = 0; i < amt; i++) {
+    int i = 0;
+
+    while (items[i] != NULL) {
         if (items[i]->id == 0) {
             saveNew(items[i]);
         } else {
             saveExisting(items[i]);
         }
+        i++;
     }
 }
 

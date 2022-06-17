@@ -50,6 +50,6 @@ PlannerItem *buildItem(
 
 void freeItem(PlannerItem *item);
 
-void freeAll(PlannerItem **items, int amt);
+void freeAll(PlannerItem **items);
 
 #endif

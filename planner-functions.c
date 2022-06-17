@@ -54,18 +54,17 @@ void freeItem(PlannerItem *obj)
 }
 
 /**
- * Destroy array of PlannerItem objects.
+ * Destroy array of PlannerItem objects *and* the array itself.
  *
  * @param   **PlannerItem   Objects to destroy.
  * @param   amt             Count of objects.
  */
-void freeAll(PlannerItem **items, int amt)
+void freeAll(PlannerItem **items)
 {
-    for (int i = 0; i < amt; i++) {
-        if (items[i] != NULL) {
-            freeItem(items[i]); // Free individual item.
-        }
+    int i = 0;
+    while (items[i] != NULL) {
+        freeItem(items[i++]);
     }
 
-    free(items); // Free array itself.
+    free(items);
 }

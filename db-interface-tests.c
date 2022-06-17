@@ -39,11 +39,12 @@ void testSavingMultipleRecords()
         0
     );
 
-    PlannerItem *testObjs[1];
+    PlannerItem *testObjs[2];
 
     testObjs[0] = testObj;
+    testObjs[1] = NULL;
 
-    db_interface_save(testObjs, 1);
+    db_interface_save(testObjs);
 
     long returned_id = testObj->id;
 
@@ -80,11 +81,12 @@ void testSavingMultipleRecords()
     testObj->desc = (char *) realloc(testObj->desc, strlen(newstr) + 1);
     strcpy(testObj->desc, newstr);
 
-    PlannerItem *testObjs2[2];
+    PlannerItem *testObjs2[3];
     testObjs2[0] = testObj;
     testObjs2[1] = testObj2;
+    testObjs2[2] = NULL;
 
-    db_interface_save(testObjs2, 2);
+    db_interface_save(testObjs2);
 
     long second_returned_id = testObj2->id;
     printf("Inserted second object resulting in id #%ld\n", second_returned_id);
@@ -122,7 +124,7 @@ void testGettingRecordsFromRange()
 
     // Build multiple items to put into db.
 
-    PlannerItem **testArr = malloc(4 * (sizeof *testArr));
+    PlannerItem **testArr = malloc(5 * (sizeof *testArr));
 
     char *inRes = "In results";
     char *notInRes = "Not in results.";
@@ -159,9 +161,10 @@ void testGettingRecordsFromRange()
         buildDate(0, 1, 1), // Doesn't matter.
         -1
     );
+    testArr[4] = NULL;
 
-    db_interface_save(testArr, 4);
-    freeAll(testArr, 4);
+    db_interface_save(testArr);
+    freeAll(testArr);
     // Go ahead and destroy these; we're going to find them in the database.
 
     PlannerItem **resultArr = db_interface_range(
@@ -180,7 +183,7 @@ void testGettingRecordsFromRange()
         i++;
     }
 
-    freeAll(resultArr, 3);
+    freeAll(resultArr);
     // I just happen to know that there are three for this.  Will be removed in
     // future version.
 

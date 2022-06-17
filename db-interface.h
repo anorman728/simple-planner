@@ -7,7 +7,7 @@ void db_interface_initialize(char *filename);
 
 void db_interface_finalize();
 
-void db_interface_save(PlannerItem *items[], int amt);
+void db_interface_save(PlannerItem *items[]);
 
 PlannerItem *db_interface_get(int id);
 
