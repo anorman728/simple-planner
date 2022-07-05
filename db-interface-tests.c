@@ -6,6 +6,7 @@
 #include "db-interface.h"
 #include "planner-functions.h"
 
+void testBuildError();
 void testSavingMultipleRecords();
 void testGettingRecordsFromRange();
 void deleteFileIfExists(char *filename);
@@ -14,6 +15,7 @@ char *testDb = "./testing.db";
 
 int main()
 {
+    testBuildError();
     testSavingMultipleRecords();
     testGettingRecordsFromRange();
 
@@ -123,7 +125,7 @@ void testSavingMultipleRecords()
 
 void testGettingRecordsFromRange()
 {
-    printf("Starting tetGettingMultipleRecords.\n");
+    printf("Starting testGettingMultipleRecords.\n");
 
     deleteFileIfExists(testDb);
     db_interface_initialize(testDb);
@@ -187,7 +189,7 @@ void testGettingRecordsFromRange()
     while (resultArr[i] != NULL) {
         if (strcmp(resultArr[i]->desc, inRes) != 0) {
             char *date = toString(resultArr[i]->date);
-            printf("Found invalid desc in results! In date %s.\n", date);
+            printf("FAILURE: Found invalid desc in results! In date %s.\n", date);
             free(date);
         }
         i++;
@@ -200,6 +202,30 @@ void testGettingRecordsFromRange()
     db_interface_finalize();
 
     printf("Completed testGettingRecordsFromRange.\n");
+}
+
+void testBuildError()
+{
+    printf("Starting testBuildError.\n");
+
+    char str[80];
+
+    // Test with db-related error.
+    _db_interface_set_db_err(10);
+    db_interface_build_err(str, DB_INTERFACE_DB_ERROR);
+
+    if (strcmp(str, "Database error (SQLite code): 10.") != 0) {
+        printf("FAILURE: String is not set as expected for db-related error.\n");
+    }
+
+    // Test with interface error.
+    db_interface_build_err(str, DB_INTERFACE_NO_ERROR);
+
+    if (strcmp(str, "Interface error: 0.") != 0) {
+        printf("FAILURE: String is not set as expected or interface error.\n");
+    }
+
+    printf("Completed testBuildError.\n");
 }
 
 

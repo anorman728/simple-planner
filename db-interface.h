@@ -3,11 +3,23 @@
 
 #include "planner-functions.h"
 
+// Constants.
+
+const int DB_INTERFACE_NO_ERROR;
+
+const int DB_INTERFACE_DB_ERROR;
+
 void db_interface_initialize(char *filename);
 
 void db_interface_finalize();
 
 void db_interface_save(PlannerItem *items[]);
+
+int db_interface_get_db_err();
+
+void db_interface_build_err(char *str, int code);
+
+void _db_interface_set_db_err(int dbCodeInput);
 
 PlannerItem *db_interface_get(int id);
 

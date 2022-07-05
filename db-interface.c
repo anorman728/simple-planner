@@ -17,6 +17,16 @@ static void updateDatabase();
 static int doesDatabaseExist();
 static void createDbV1();
 
+/** This is the error code from SQLite. */
+int dbErrCode = 0;
+
+// Constants
+
+const int DB_INTERFACE_NO_ERROR = 0;
+
+const int DB_INTERFACE_DB_ERROR = 10;
+
+
 /**
  * Open the database file.  Create one if it doesn't exist.
  *
@@ -60,6 +70,54 @@ void db_interface_save(PlannerItem *items[])
         }
         i++;
     }
+}
+
+/**
+ * Get the most recent error code from SQLite.
+ */
+int db_interface_get_db_err()
+{
+    return dbErrCode;
+}
+
+/**
+ * Build error string from return code, for printing.
+ *
+ * If the error code is for SQLite, this will use the most recent error.
+ *
+ * @param   str     Pointer to char.  Must be at least 80 characters long.
+ * @param   code    Previously-returned error code.
+ */
+void db_interface_build_err(char *str, int code)
+{
+    // TODO: There's *got* to be a better way to do this, but I don't know yet
+    // what it is.  Only other idea I can think of is putting the string on heap
+    // memory, which might actually be preferred.
+    int lenmax = 80;
+
+    char *errMsg = "db_interface_build_err: Output string truncated."
+    "  Lost characters.";
+
+    if (code == DB_INTERFACE_DB_ERROR) {
+        if (lenmax < snprintf(str, lenmax, "Database error (SQLite code): %d.", dbErrCode)) {
+            fprintf(stderr, "%s\n", errMsg);
+        }
+        return;
+    }
+
+    if (lenmax < snprintf(str, lenmax, "Interface error: %d.", code)) {
+        fprintf(stderr, "%s\n", errMsg);
+    }
+}
+
+/**
+ * Set the db variable manually.  This is for testing purposes only.
+ *
+ * @param   dbCode
+ */
+void _db_interface_set_db_err(int dbCodeInput)
+{
+    dbErrCode = dbCodeInput;
 }
 
 /**
