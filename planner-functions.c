@@ -8,17 +8,28 @@
 
 #include "date-functions.h"
 
+
+// Constants
+
+const char PLANNER_STATUS__OK = 0;
+
+const char PLANNER_STATUS__OUT_OF_MEMORY = 10;
+
+
 /**
- * Build a planner item object.
+ * Build a planner item object.  Returns static as integer.
  *
+ * @param   item    Pointer to pointer to point to new object.
  * @param   id      Id from db.  Zero if new object.
  * @param   dateObj Date object.
  * @param   desc    Description string.
  * @param   rep     Repetition, from enum.
  * @param   exp     Expiry, year zero if none.
  * @param   done    "To-do" status.  (Described by struct doc.)
+ * @return  int
  */
-PlannerItem *buildItem(
+int buildItem(
+    PlannerItem **item,
     long id,
     Date dateObj,
     char *desc,
@@ -26,20 +37,31 @@ PlannerItem *buildItem(
     Date exp,
     char done
 ) {
-    char *descHp = (char *) malloc(strlen(desc) + 1);
+    char *descHp = malloc(strlen(desc) + 1);
+
+    if (descHp == NULL) {
+        return PLANNER_STATUS__OUT_OF_MEMORY;
+    }
+
     strcpy(descHp, desc);
 
     // Build item.
-    PlannerItem *item = (PlannerItem *) malloc(sizeof(PlannerItem));
+    PlannerItem *itmDum = malloc(sizeof(PlannerItem));
 
-    item->id    = id;
-    item->date  = dateObj;
-    item->desc  = descHp;
-    item->exp   = exp;
-    item->rep   = rep;
-    item->done  = done;
+    if (itmDum == NULL) {
+        return PLANNER_STATUS__OUT_OF_MEMORY;
+    }
 
-    return item;
+    itmDum->id     = id;
+    itmDum->date   = dateObj;
+    itmDum->desc   = descHp;
+    itmDum->exp    = exp;
+    itmDum->rep    = rep;
+    itmDum->done   = done;
+
+    *item = itmDum;
+
+    return PLANNER_STATUS__OK;
 }
 
 /**
@@ -51,6 +73,7 @@ void freeItem(PlannerItem *obj)
 {
     free(obj->desc);
     free(obj);
+    obj = NULL; // (Almost) Always set freed pointers to null.
 }
 
 /**
@@ -67,4 +90,5 @@ void freeAll(PlannerItem **items)
     }
 
     free(items);
+    items = NULL; // Always set freed ponters to null.
 }

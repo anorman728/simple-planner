@@ -194,13 +194,15 @@ static PlannerItem **getFromWhere(char *where, int *values, int count)
     }
 
     int final = 0;
+    int rc;
     PlannerItem **returnVal = malloc(sizeof *returnVal);
     // Will be at least one, for the null at the end.
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         returnVal = realloc(returnVal, (++final + 1) * (sizeof *returnVal));
 
-        returnVal[final - 1] = buildItem(
+        rc = buildItem(
+            &returnVal[final - 1],
             sqlite3_column_int(stmt, 0),
             toDate(sqlite3_column_int(stmt, 1)),
             (char *) sqlite3_column_text(stmt, 2),
@@ -208,6 +210,11 @@ static PlannerItem **getFromWhere(char *where, int *values, int count)
             toDate(sqlite3_column_int(stmt, 4)),
             sqlite3_column_int(stmt, 5)
         );
+
+        if (rc != PLANNER_STATUS__OK) {
+            printf("db-interface.getFromWhere: Received error %d.  Exiting.\n.", rc);
+            exit(EXIT_FAILURE);
+        }
     }
     returnVal[final] = NULL;
 

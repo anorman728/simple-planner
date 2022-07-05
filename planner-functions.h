@@ -8,6 +8,13 @@
 // function in the same way that I needed to make a special function for freeing
 // the object.
 
+// Constants
+
+const char PLANNER_STATUS__OK;
+
+const char PLANNER_STATUS__OUT_OF_MEMORY;
+
+
 typedef enum planner_repenum
 {
     rep_D, // daily
@@ -39,7 +46,8 @@ typedef struct planner_itemstruct
 
 } PlannerItem;
 
-PlannerItem *buildItem(
+int buildItem(
+    PlannerItem **item,
     long id,
     Date dateObj,
     char *desc,
@@ -51,5 +59,6 @@ PlannerItem *buildItem(
 void freeItem(PlannerItem *item);
 
 void freeAll(PlannerItem **items);
+
 
 #endif

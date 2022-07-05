@@ -30,7 +30,10 @@ void testSavingMultipleRecords()
 
     char *desc = "test entry 9631";
 
-    PlannerItem *testObj = buildItem(
+    PlannerItem *testObj;
+
+    buildItem(
+        &testObj,
         0,
         buildDate(22, 6, 5),
         desc,
@@ -67,7 +70,10 @@ void testSavingMultipleRecords()
 
     desc = "second test entry 5316";
 
-    PlannerItem *testObj2 = buildItem(
+    PlannerItem *testObj2;
+
+    buildItem(
+        &testObj2,
         0,
         buildDate(12, 7, 15),
         desc,
@@ -129,7 +135,8 @@ void testGettingRecordsFromRange()
     char *inRes = "In results";
     char *notInRes = "Not in results.";
 
-    testArr[0] = buildItem(
+    buildItem(
+        &testArr[0],
         0,
         buildDate(22, 6, 1),
         notInRes,
@@ -137,7 +144,8 @@ void testGettingRecordsFromRange()
         buildDate(0, 1, 1), // Doesn't matter.
         -1 // Doesn't matter
     );
-    testArr[1] = buildItem(
+    buildItem(
+        &testArr[1],
         0,
         buildDate(22, 6, 5),
         inRes,
@@ -145,7 +153,8 @@ void testGettingRecordsFromRange()
         buildDate(0, 1, 1), // Doesn't matter.
         -1
     );
-    testArr[2] = buildItem(
+    buildItem(
+        &testArr[2],
         0,
         buildDate(22, 6, 10),
         inRes,
@@ -153,7 +162,8 @@ void testGettingRecordsFromRange()
         buildDate(0, 1, 1), // Doesn't matter.
         -1
     );
-    testArr[3] = buildItem(
+    buildItem(
+        &testArr[3],
         0,
         buildDate(22, 6, 15),
         notInRes,

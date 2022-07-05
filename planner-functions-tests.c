@@ -88,5 +88,14 @@ static PlannerItem *buildItemDummyFunction()
     Date dateObj = buildDate(103, 6, 1);
     Date exp = buildDate(103, 5, 1);
 
-    return buildItem(0, dateObj, "Planner description 436", rep_W, exp, -1);
+    PlannerItem *itm;
+
+    int rc = buildItem(&itm, 0, dateObj, "Planner description 436", rep_W, exp, -1);
+
+    if (rc != PLANNER_STATUS__OK) {
+        printf("buildItemDummyFunction: Received error: %d\n.", rc);
+        exit(EXIT_FAILURE);
+    }
+
+    return itm;
 }
