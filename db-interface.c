@@ -22,7 +22,7 @@ int dbErrCode = 0;
 
 // Constants
 
-const int DB_INTERFACE_NO_ERROR = 0;
+const int DB_INTERFACE_OK = 0;
 
 const int DB_INTERFACE_DB_ERROR = 10;
 

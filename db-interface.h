@@ -5,7 +5,7 @@
 
 // Constants.
 
-const int DB_INTERFACE_NO_ERROR;
+const int DB_INTERFACE_OK;
 
 const int DB_INTERFACE_DB_ERROR;
 

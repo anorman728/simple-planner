@@ -222,7 +222,7 @@ void testBuildError()
     }
 
     // Test with interface error.
-    db_interface_build_err(str, DB_INTERFACE_NO_ERROR);
+    db_interface_build_err(str, DB_INTERFACE_OK);
 
     if (strcmp(str, "Interface error: 0.") != 0) {
         printf("FAILURE: String is not set as expected or interface error.\n");
