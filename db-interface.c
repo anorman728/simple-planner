@@ -35,9 +35,10 @@ const int DB_INTERFACE_DB_ERROR = 10;
 void db_interface_initialize(char *filename)
 {
     // TODO: Return int with status.
-    int rc = sqlite3_open(filename, &dbFile);
+    // https://sqlite.org/c3ref/open.html
+    dbErrCode = sqlite3_open(filename, &dbFile);
 
-    if (rc) {
+    if (dbErrCode) {
         // TODO: Return error status here.
         fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(dbFile));
     }
@@ -50,7 +51,8 @@ void db_interface_initialize(char *filename)
  */
 void db_interface_finalize()
 {
-    sqlite3_close(dbFile);
+    // https://sqlite.org/c3ref/close.html
+    dbErrCode = sqlite3_close(dbFile);
 }
 
 /**
@@ -99,9 +101,17 @@ void db_interface_build_err(char *str, int code)
     "  Lost characters.";
 
     if (code == DB_INTERFACE_DB_ERROR) {
-        if (lenmax < snprintf(str, lenmax, "Database error (SQLite code): %d.", dbErrCode)) {
+        if (lenmax < snprintf(str, lenmax, "Database error: %d.", dbErrCode)) {
             fprintf(stderr, "%s\n", errMsg);
         }
+
+        const char *dbMsg = sqlite3_errmsg(dbFile);
+        if (strlen(str) + strlen(dbMsg) - 1 > lenmax) {
+            fprintf(stderr, "%s\n", errMsg);
+        }
+        strcat(str, " ");
+        strcat(str, dbMsg);
+
         return;
     }
 
@@ -111,13 +121,13 @@ void db_interface_build_err(char *str, int code)
 }
 
 /**
- * Set the db variable manually.  This is for testing purposes only.
- *
- * @param   dbCode
+ * Intentionally create a database error, for purposes of testing.
  */
-void _db_interface_set_db_err(int dbCodeInput)
+void _db_interface_create_db_err()
 {
-    dbErrCode = dbCodeInput;
+    char *sqldum = "definitely not valid sql code";
+
+    dbErrCode = sqlite3_exec(dbFile, sqldum, 0, 0, NULL);
 }
 
 /**
@@ -172,22 +182,24 @@ static void saveNew(PlannerItem *item)
 
     sqlite3_stmt *stmt;
 
-    sqlite3_prepare_v2(dbFile, insertRow, -1, &stmt, 0);
+    dbErrCode = sqlite3_prepare_v2(dbFile, insertRow, -1, &stmt, 0);
 
-    sqlite3_bind_int(stmt, 1, toInt(item->date));
-    sqlite3_bind_text(stmt, 2, item->desc, -1, 0);
-    sqlite3_bind_int(stmt, 3, item->rep);
-    sqlite3_bind_int(stmt, 4, toInt(item->exp));
-    sqlite3_bind_int(stmt, 5, item->done);
+    dbErrCode = sqlite3_bind_int(stmt, 1, toInt(item->date));
+    dbErrCode = sqlite3_bind_text(stmt, 2, item->desc, -1, 0);
+    dbErrCode = sqlite3_bind_int(stmt, 3, item->rep);
+    dbErrCode = sqlite3_bind_int(stmt, 4, toInt(item->exp));
+    dbErrCode = sqlite3_bind_int(stmt, 5, item->done);
 
-    sqlite3_step(stmt);
+    if ((dbErrCode = sqlite3_step(stmt)) != SQLITE_ROW) {
+        // TODO: Return here.
+    }
 
     long iddum;
     iddum = sqlite3_last_insert_rowid(dbFile);
 
     item->id = iddum;
 
-    sqlite3_finalize(stmt);
+    dbErrCode = sqlite3_finalize(stmt);
 }
 
 /**
@@ -202,17 +214,20 @@ static void saveExisting(PlannerItem *item)
 
     sqlite3_stmt *stmt;
 
-    sqlite3_prepare_v2(dbFile, updateRow, -1, &stmt, 0);
+    dbErrCode = sqlite3_prepare_v2(dbFile, updateRow, -1, &stmt, 0);
 
-    sqlite3_bind_int(stmt,1, toInt(item->date));
-    sqlite3_bind_text(stmt,2, item->desc, -1, 0);
-    sqlite3_bind_int(stmt,3, item->rep);
-    sqlite3_bind_int(stmt,4, toInt(item->exp));
-    sqlite3_bind_int(stmt,5, item->done);
-    sqlite3_bind_int(stmt,6, item->id);
+    dbErrCode = sqlite3_bind_int(stmt,1, toInt(item->date));
+    dbErrCode = sqlite3_bind_text(stmt,2, item->desc, -1, 0);
+    dbErrCode = sqlite3_bind_int(stmt,3, item->rep);
+    dbErrCode = sqlite3_bind_int(stmt,4, toInt(item->exp));
+    dbErrCode = sqlite3_bind_int(stmt,5, item->done);
+    dbErrCode = sqlite3_bind_int(stmt,6, item->id);
 
-    sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
+    if ((dbErrCode = sqlite3_step(stmt)) != SQLITE_ROW) {
+        // TODO: Return here.
+    }
+
+    dbErrCode = sqlite3_finalize(stmt);
 }
 
 /**
@@ -245,10 +260,12 @@ static PlannerItem **getFromWhere(char *where, int *values, int count)
     // Make prepared statement and bind values.
 
     sqlite3_stmt *stmt;
-    sqlite3_prepare_v2(dbFile, sql, -1, &stmt, 0);
+    // https://sqlite.org/c3ref/prepare.html
+    dbErrCode = sqlite3_prepare_v2(dbFile, sql, -1, &stmt, 0);
 
     for (int i = 0; i < count; i++) {
-        sqlite3_bind_int(stmt, i + 1, values[i]);
+        // https://sqlite.org/c3ref/bind_blob.html
+        dbErrCode = sqlite3_bind_int(stmt, i + 1, values[i]);
     }
 
     int final = 0;
@@ -276,7 +293,7 @@ static PlannerItem **getFromWhere(char *where, int *values, int count)
     }
     returnVal[final] = NULL;
 
-    sqlite3_finalize(stmt);
+    dbErrCode = sqlite3_finalize(stmt);
 
     return returnVal;
 }
@@ -310,14 +327,16 @@ static int doesDatabaseExist()
     char *sqldum = "SELECT count(*) as count FROM sqlite_master \
     WHERE type='table' AND name=?";
 
-    sqlite3_prepare_v2(dbFile, sqldum, -1, &stmt, 0);
-    sqlite3_bind_text(stmt, 1, "meta", -1, 0);
+    dbErrCode = sqlite3_prepare_v2(dbFile, sqldum, -1, &stmt, 0);
+    dbErrCode = sqlite3_bind_text(stmt, 1, "meta", -1, 0);
 
-    sqlite3_step(stmt);
+    if((dbErrCode = sqlite3_step(stmt)) != SQLITE_ROW) {
+        // TODO: Return here.
+    }
 
     int val = sqlite3_column_int(stmt, 0);
 
-    sqlite3_finalize(stmt);
+    dbErrCode = sqlite3_finalize(stmt);
 
     return val;
 }
@@ -328,7 +347,6 @@ static int doesDatabaseExist()
 static void createDbV1()
 {
     char *sqldum;
-    int rc;
     char *zErrMsg;
 
     // Create meta table.
@@ -338,8 +356,8 @@ static void createDbV1()
         " value TEXT NOT NULL"
     ");";
 
-    rc = sqlite3_exec(dbFile, sqldum, 0, 0, &zErrMsg);
-    if (rc) {
+    dbErrCode = sqlite3_exec(dbFile, sqldum, 0, 0, &zErrMsg);
+    if (dbErrCode) {
         fprintf(stderr, "Error while creating db: %s\n", zErrMsg);
     }
     sqlite3_free(zErrMsg);
@@ -355,8 +373,8 @@ static void createDbV1()
         " \"1\""
     ");";
 
-    rc = sqlite3_exec(dbFile, sqldum, 0, 0, &zErrMsg);
-    if (rc) {
+    dbErrCode = sqlite3_exec(dbFile, sqldum, 0, 0, &zErrMsg);
+    if (dbErrCode) {
         fprintf(stderr, "Error while inserting first record into \"meta\" table: %s\n", zErrMsg);
     }
     sqlite3_free(zErrMsg);
@@ -370,8 +388,8 @@ static void createDbV1()
         " exp INTEGER NOT NULL,"
         " done INTEGER NOT NULL"
     ");";
-    rc = sqlite3_exec(dbFile, sqldum, 0, 0, &zErrMsg);
-    if (rc) {
+    dbErrCode = sqlite3_exec(dbFile, sqldum, 0, 0, &zErrMsg);
+    if (dbErrCode) {
         fprintf(stderr, "Error while creating \"items\" table: %s\n.", zErrMsg);
     }
     sqlite3_free(zErrMsg);

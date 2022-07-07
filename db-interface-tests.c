@@ -208,13 +208,16 @@ void testBuildError()
 {
     printf("Starting testBuildError.\n");
 
+    deleteFileIfExists(testDb);
+    db_interface_initialize(testDb);
+
     char str[80];
 
     // Test with db-related error.
-    _db_interface_set_db_err(10);
+    _db_interface_create_db_err();
     db_interface_build_err(str, DB_INTERFACE_DB_ERROR);
 
-    if (strcmp(str, "Database error (SQLite code): 10.") != 0) {
+    if (strcmp(str, "Database error: 1. near \"definitely\": syntax error") != 0) {
         printf("FAILURE: String is not set as expected for db-related error.\n");
     }
 
@@ -224,6 +227,8 @@ void testBuildError()
     if (strcmp(str, "Interface error: 0.") != 0) {
         printf("FAILURE: String is not set as expected or interface error.\n");
     }
+
+    db_interface_finalize();
 
     printf("Completed testBuildError.\n");
 }

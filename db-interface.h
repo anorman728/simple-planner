@@ -19,7 +19,7 @@ int db_interface_get_db_err();
 
 void db_interface_build_err(char *str, int code);
 
-void _db_interface_set_db_err(int dbCodeInput);
+void _db_interface_create_db_err();
 
 PlannerItem *db_interface_get(int id);
 
