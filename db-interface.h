@@ -5,9 +5,9 @@
 
 // Constants.
 
-const int DB_INTERFACE_OK;
+const char DB_INTERFACE__OK;
 
-const int DB_INTERFACE_DB_ERROR;
+const char DB_INTERFACE__DB_ERROR;
 
 void db_interface_initialize(char *filename);
 

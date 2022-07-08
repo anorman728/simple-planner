@@ -13,7 +13,7 @@
 
 const char PLANNER_STATUS__OK = 0;
 
-const char PLANNER_STATUS__OUT_OF_MEMORY = 10;
+const char PLANNER_STATUS__OUT_OF_MEMORY = 1;
 
 
 /**

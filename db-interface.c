@@ -24,9 +24,9 @@ int dbErrCode = 0;
 
 // Constants
 
-const int DB_INTERFACE_OK = 0;
+const char DB_INTERFACE__OK = 0;
 
-const int DB_INTERFACE_DB_ERROR = 10;
+const char DB_INTERFACE__DB_ERROR = 1;
 
 
 /**
@@ -107,7 +107,7 @@ void db_interface_build_err(char **str, int code)
     *str = malloc(1);
     strcpy(*str, "");
 
-    if (code == DB_INTERFACE_DB_ERROR) {
+    if (code == DB_INTERFACE__DB_ERROR) {
         db_interface_build_err__db(str);
         return;
     }
