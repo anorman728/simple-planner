@@ -212,10 +212,15 @@ void testBuildError()
     db_interface_initialize(testDb);
 
     char *str;
+    int rc;
 
     // Test with db-related error.
     _db_interface_create_db_err();
-    db_interface_build_err(&str, DB_INTERFACE__DB_ERROR);
+    rc = db_interface_build_err(&str, DB_INTERFACE__DB_ERROR);
+
+    if (rc) {
+        printf("Out of memory on first call to db_interface_build_err.\n");
+    }
 
     if (strcmp(str, "Database error: 1. near \"definitely\": syntax error") != 0) {
         printf("FAILURE: String is not set as expected for db-related error.\n");
@@ -224,7 +229,11 @@ void testBuildError()
     str = NULL;
 
     // Test with interface error.
-    db_interface_build_err(&str, DB_INTERFACE__OK);
+    rc = db_interface_build_err(&str, DB_INTERFACE__OK);
+
+    if (rc) {
+        printf("Out of memory on second call to db_interface_build_err.\n");
+    }
 
     if (strcmp(str, "Interface error: 0.") != 0) {
         printf("FAILURE: String is not set as expected or interface error.\n");

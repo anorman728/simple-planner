@@ -12,8 +12,9 @@ static sqlite3 *dbFile;
 static void saveNew(PlannerItem *item);
 static void saveExisting(PlannerItem *item);
 static PlannerItem **getFromWhere(char *where, int *values, int count);
-static void db_interface_build_err__db(char **str);
-static void db_interface_build_err__ifce(char **str, int code);
+
+static int db_interface_build_err__db(char **str);
+static int db_interface_build_err__ifce(char **str, int code);
 
 static void updateDatabase();
 static int doesDatabaseExist();
@@ -27,6 +28,8 @@ int dbErrCode = 0;
 const char DB_INTERFACE__OK = 0;
 
 const char DB_INTERFACE__DB_ERROR = 1;
+
+const char DB_INTERFACE__OUT_OF_MEMORY = 2;
 
 
 /**
@@ -94,7 +97,7 @@ int db_interface_get_db_err()
  * @param   str     HEAP.  Pointer to string.
  * @param   code    Previously-returned error code.
  */
-void db_interface_build_err(char **str, int code)
+int db_interface_build_err(char **str, int code)
 {
     // I decided to use heap memory for this because it makes the code
     // significantly easier and passing a function-scope pointer to this
@@ -104,15 +107,11 @@ void db_interface_build_err(char **str, int code)
     // free the memory is worth it to have manageable code.  Can look at the
     // previous commit to see what it looked like before.
 
-    *str = malloc(1);
-    strcpy(*str, "");
-
     if (code == DB_INTERFACE__DB_ERROR) {
-        db_interface_build_err__db(str);
-        return;
+        return db_interface_build_err__db(str);
     }
 
-    db_interface_build_err__ifce(str, code);
+    return db_interface_build_err__ifce(str, code);
 
 }
 
@@ -300,7 +299,7 @@ static PlannerItem **getFromWhere(char *where, int *values, int count)
  * @param   str     HEAP.  Pointer to string.
  * @param   code
  */
-static void db_interface_build_err__db(char **str)
+static int db_interface_build_err__db(char **str)
 {
     char *fmt = "Database error: %d. ";
     int strlen01 = snprintf(NULL, 0, fmt, dbErrCode);
@@ -308,9 +307,16 @@ static void db_interface_build_err__db(char **str)
     char *dbMsg = (char *) sqlite3_errmsg(dbFile);
 
     int sizedum = strlen01 + strlen(dbMsg) + 1;
-    *str = realloc(*str, sizedum);
+    *str = malloc(sizedum);
+
+    if (str == NULL) {
+        return DB_INTERFACE__OUT_OF_MEMORY;
+    }
+
     snprintf(*str, sizedum, fmt, dbErrCode);
     strcat(*str, dbMsg);
+
+    return DB_INTERFACE__OK;
 }
 
 /**
@@ -319,15 +325,22 @@ static void db_interface_build_err__db(char **str)
  * @param   str     HEAP.  Pointer to string.
  * @param   code
  */
-static void db_interface_build_err__ifce(char **str, int code)
+static int db_interface_build_err__ifce(char **str, int code)
 {
     char *fmt = "Interface error: %d.";
     // TODO: May want to add strings to this, but not important enough at the
     // moment.  Right now, there are no interface errors anyway.
     int strlen01 = snprintf(NULL, 0, fmt, code);
 
-    *str = realloc(*str, strlen01 + 1);
+    *str = malloc(strlen01 + 1);
+
+    if (str == NULL) {
+        return DB_INTERFACE__OUT_OF_MEMORY;
+    }
+
     snprintf(*str, strlen01 + 1, fmt, code);
+
+    return DB_INTERFACE__OK;
 }
 
 
