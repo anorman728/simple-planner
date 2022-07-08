@@ -211,24 +211,28 @@ void testBuildError()
     deleteFileIfExists(testDb);
     db_interface_initialize(testDb);
 
-    char str[80];
+    char *str;
 
     // Test with db-related error.
     _db_interface_create_db_err();
-    db_interface_build_err(str, DB_INTERFACE_DB_ERROR);
+    db_interface_build_err(&str, DB_INTERFACE_DB_ERROR);
 
     if (strcmp(str, "Database error: 1. near \"definitely\": syntax error") != 0) {
         printf("FAILURE: String is not set as expected for db-related error.\n");
     }
+    free(str);
+    str = NULL;
 
     // Test with interface error.
-    db_interface_build_err(str, DB_INTERFACE_OK);
+    db_interface_build_err(&str, DB_INTERFACE_OK);
 
     if (strcmp(str, "Interface error: 0.") != 0) {
         printf("FAILURE: String is not set as expected or interface error.\n");
     }
 
     db_interface_finalize();
+    free(str);
+    str = NULL;
 
     printf("Completed testBuildError.\n");
 }

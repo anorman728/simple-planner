@@ -12,6 +12,8 @@ static sqlite3 *dbFile;
 static void saveNew(PlannerItem *item);
 static void saveExisting(PlannerItem *item);
 static PlannerItem **getFromWhere(char *where, int *values, int count);
+static void db_interface_build_err__db(char **str);
+static void db_interface_build_err__ifce(char **str, int code);
 
 static void updateDatabase();
 static int doesDatabaseExist();
@@ -87,37 +89,31 @@ int db_interface_get_db_err()
  *
  * If the error code is for SQLite, this will use the most recent error.
  *
- * @param   str     Pointer to char.  Must be at least 80 characters long.
+ * The resulting string is on heap memory and must be freed!
+ *
+ * @param   str     HEAP.  Pointer to string.
  * @param   code    Previously-returned error code.
  */
-void db_interface_build_err(char *str, int code)
+void db_interface_build_err(char **str, int code)
 {
-    // TODO: There's *got* to be a better way to do this, but I don't know yet
-    // what it is.  Only other idea I can think of is putting the string on heap
-    // memory, which might actually be preferred.
-    int lenmax = 80;
+    // I decided to use heap memory for this because it makes the code
+    // significantly easier and passing a function-scope pointer to this
+    // function is not memory-safe and runs the risk of truncating the output
+    // string.  There is also some precedent here, because this is also how
+    // sqlite3_exec handles their errmsg string, if it's not null.  Having to
+    // free the memory is worth it to have manageable code.  Can look at the
+    // previous commit to see what it looked like before.
 
-    char *errMsg = "db_interface_build_err: Output string truncated."
-    "  Lost characters.";
+    *str = malloc(1);
+    strcpy(*str, "");
 
     if (code == DB_INTERFACE_DB_ERROR) {
-        if (lenmax < snprintf(str, lenmax, "Database error: %d.", dbErrCode)) {
-            fprintf(stderr, "%s\n", errMsg);
-        }
-
-        const char *dbMsg = sqlite3_errmsg(dbFile);
-        if (strlen(str) + strlen(dbMsg) - 1 > lenmax) {
-            fprintf(stderr, "%s\n", errMsg);
-        }
-        strcat(str, " ");
-        strcat(str, dbMsg);
-
+        db_interface_build_err__db(str);
         return;
     }
 
-    if (lenmax < snprintf(str, lenmax, "Interface error: %d.", code)) {
-        fprintf(stderr, "%s\n", errMsg);
-    }
+    db_interface_build_err__ifce(str, code);
+
 }
 
 /**
@@ -296,6 +292,42 @@ static PlannerItem **getFromWhere(char *where, int *values, int count)
     dbErrCode = sqlite3_finalize(stmt);
 
     return returnVal;
+}
+
+/**
+ * Set error string from database error.
+ *
+ * @param   str     HEAP.  Pointer to string.
+ * @param   code
+ */
+static void db_interface_build_err__db(char **str)
+{
+    char *fmt = "Database error: %d. ";
+    int strlen01 = snprintf(NULL, 0, fmt, dbErrCode);
+
+    char *dbMsg = (char *) sqlite3_errmsg(dbFile);
+
+    int sizedum = strlen01 + strlen(dbMsg) + 1;
+    *str = realloc(*str, sizedum);
+    snprintf(*str, sizedum, fmt, dbErrCode);
+    strcat(*str, dbMsg);
+}
+
+/**
+ * Set error string for interface error.
+ *
+ * @param   str     HEAP.  Pointer to string.
+ * @param   code
+ */
+static void db_interface_build_err__ifce(char **str, int code)
+{
+    char *fmt = "Interface error: %d.";
+    // TODO: May want to add strings to this, but not important enough at the
+    // moment.  Right now, there are no interface errors anyway.
+    int strlen01 = snprintf(NULL, 0, fmt, code);
+
+    *str = realloc(*str, strlen01 + 1);
+    snprintf(*str, strlen01 + 1, fmt, code);
 }
 
 

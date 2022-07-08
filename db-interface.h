@@ -17,7 +17,7 @@ void db_interface_save(PlannerItem *items[]);
 
 int db_interface_get_db_err();
 
-void db_interface_build_err(char *str, int code);
+void db_interface_build_err(char **str, int code);
 
 void _db_interface_create_db_err();
 
