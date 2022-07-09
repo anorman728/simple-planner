@@ -209,10 +209,17 @@ void testBuildError()
     printf("...Starting testBuildError.\n");
 
     deleteFileIfExists(testDb);
-    db_interface_initialize(testDb);
+
+    char rc;
+
+    rc = db_interface_initialize(testDb);
+
+    if (rc) {
+        printf("ERROR: Couldn't even initialize DB.\n");
+        return;
+    }
 
     char *str;
-    int rc;
 
     // Test with db-related error.
     _db_interface_create_db_err();
@@ -220,6 +227,7 @@ void testBuildError()
 
     if (rc) {
         printf("ERROR: Out of memory on first call to db_interface_build_err.\n");
+        return;
     }
 
     if (strcmp(str, "Database error: 1. near \"definitely\": syntax error") != 0) {
@@ -233,6 +241,7 @@ void testBuildError()
 
     if (rc) {
         printf("ERROR: Out of memory on second call to db_interface_build_err.\n");
+        return;
     }
 
     if (strcmp(str, "Interface error: 0.") != 0) {

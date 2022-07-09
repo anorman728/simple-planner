@@ -13,12 +13,12 @@ static void saveNew(PlannerItem *item);
 static void saveExisting(PlannerItem *item);
 static PlannerItem **getFromWhere(char *where, int *values, int count);
 
-static int db_interface_build_err__db(char **str);
-static int db_interface_build_err__ifce(char **str, int code);
+static char db_interface_build_err__db(char **str);
+static char db_interface_build_err__ifce(char **str, int code);
 
-static void updateDatabase();
-static int doesDatabaseExist();
-static void createDbV1();
+static char updateDatabase();
+static char doesDatabaseExist();
+static char createDbV1();
 
 /** This is the error code from SQLite. */
 int dbErrCode = 0;
@@ -33,22 +33,23 @@ const char DB_INTERFACE__OUT_OF_MEMORY = 2;
 
 
 /**
- * Open the database file.  Create one if it doesn't exist.
+ * Open the database file.  Create one if it doesn't exist.  Returns RC from
+ * constants.
  *
  * @param   filename    String representing filename path.
  */
-void db_interface_initialize(char *filename)
+char db_interface_initialize(char *filename)
 {
-    // TODO: Return int with status.
-    // https://sqlite.org/c3ref/open.html
-    dbErrCode = sqlite3_open(filename, &dbFile);
+    int rc; // Will be from SQLite lib's constants. (Don't return this val.)
 
-    if (dbErrCode) {
-        // TODO: Return error status here.
-        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(dbFile));
+    // https://sqlite.org/c3ref/open.html
+    rc = sqlite3_open(filename, &dbFile);
+
+    if (rc) {
+        return DB_INTERFACE__DB_ERROR;
     }
 
-    updateDatabase();
+    return updateDatabase();
 }
 
 /**
@@ -97,7 +98,7 @@ int db_interface_get_db_err()
  * @param   str     HEAP.  Pointer to string.
  * @param   code    Previously-returned error code.
  */
-int db_interface_build_err(char **str, int code)
+char db_interface_build_err(char **str, int code)
 {
     // I decided to use heap memory for this because it makes the code
     // significantly easier and passing a function-scope pointer to this
@@ -299,7 +300,7 @@ static PlannerItem **getFromWhere(char *where, int *values, int count)
  * @param   str     HEAP.  Pointer to string.
  * @param   code
  */
-static int db_interface_build_err__db(char **str)
+static char db_interface_build_err__db(char **str)
 {
     int dbCode = sqlite3_errcode(dbFile);;
     char *fmt = "Database error: %d. ";
@@ -327,7 +328,7 @@ static int db_interface_build_err__db(char **str)
  * @param   str     HEAP.  Pointer to string.
  * @param   code
  */
-static int db_interface_build_err__ifce(char **str, int code)
+static char db_interface_build_err__ifce(char **str, int code)
 {
     char *fmt = "Interface error: %d.";
     // TODO: May want to add strings to this, but not important enough at the
@@ -351,10 +352,23 @@ static int db_interface_build_err__ifce(char **str, int code)
 /**
  * Update database to latest version.
  */
-static void updateDatabase()
+static char updateDatabase()
 {
-    if (!doesDatabaseExist()) {
-        createDbV1();
+    char rc; // Will be from this module's constants.  (Can return.)
+
+    char tf;
+    rc = doesDatabaseExist(&tf);
+
+    if (rc) {
+        return rc;
+    }
+
+    if (!tf) {
+        rc = createDbV1();
+
+        if (rc) {
+            return rc;
+        }
     }
 
     // When need newer database versions, will want some kind of "get database
@@ -362,39 +376,59 @@ static void updateDatabase()
     // The "value" in the database's meta table is text, though, so will need to
     // use one of those functions to convert c strings to int.  (Remember, can't
     // just do it through casting.)
+
+    return DB_INTERFACE__OK;
 }
 
 /**
- * Check if there is a database to update.
+ * Check if there is a database to update.  Pointer is pointed to result.
+ * Returns return code.
+ *
+ * @param   result
  */
-static int doesDatabaseExist()
+static char doesDatabaseExist(char *result)
 {
     sqlite3_stmt *stmt;
+    int rc; // Will be from SQLite lib's constants.  (Don't return.)
 
     char *sqldum = "SELECT count(*) as count FROM sqlite_master \
     WHERE type='table' AND name=?";
 
-    dbErrCode = sqlite3_prepare_v2(dbFile, sqldum, -1, &stmt, 0);
-    dbErrCode = sqlite3_bind_text(stmt, 1, "meta", -1, 0);
-
-    if((dbErrCode = sqlite3_step(stmt)) != SQLITE_ROW) {
-        // TODO: Return here.
+    rc = sqlite3_prepare_v2(dbFile, sqldum, -1, &stmt, 0);
+    if (rc) {
+        return DB_INTERFACE__DB_ERROR;
     }
 
-    int val = sqlite3_column_int(stmt, 0);
+    rc = sqlite3_bind_text(stmt, 1, "meta", -1, 0);
 
-    dbErrCode = sqlite3_finalize(stmt);
+    if (rc) {
+        return DB_INTERFACE__DB_ERROR;
+    }
 
-    return val;
+    rc = sqlite3_step(stmt);
+
+    if(rc != SQLITE_ROW) {
+        return DB_INTERFACE__DB_ERROR;
+    }
+
+    *result = sqlite3_column_int(stmt, 0);
+
+    rc = sqlite3_finalize(stmt);
+
+    if (rc) {
+        return DB_INTERFACE__DB_ERROR;
+    }
+
+    return DB_INTERFACE__OK;
 }
 
 /**
  * Create version 1 of database.
  */
-static void createDbV1()
+static char createDbV1()
 {
     char *sqldum;
-    char *zErrMsg;
+    int rc; // Will be from SQLite lib's constants.  (Don't return.)
 
     // Create meta table.
     sqldum = "CREATE TABLE meta("
@@ -403,11 +437,10 @@ static void createDbV1()
         " value TEXT NOT NULL"
     ");";
 
-    dbErrCode = sqlite3_exec(dbFile, sqldum, 0, 0, &zErrMsg);
-    if (dbErrCode) {
-        fprintf(stderr, "Error while creating db: %s\n", zErrMsg);
+    rc = sqlite3_exec(dbFile, sqldum, 0, 0, NULL);
+    if (rc) {
+        return DB_INTERFACE__DB_ERROR;
     }
-    sqlite3_free(zErrMsg);
 
     // Put version into meta table.
     sqldum = "INSERT INTO meta("
@@ -420,11 +453,10 @@ static void createDbV1()
         " \"1\""
     ");";
 
-    dbErrCode = sqlite3_exec(dbFile, sqldum, 0, 0, &zErrMsg);
-    if (dbErrCode) {
-        fprintf(stderr, "Error while inserting first record into \"meta\" table: %s\n", zErrMsg);
+    rc = sqlite3_exec(dbFile, sqldum, 0, 0, NULL);
+    if (rc) {
+        return DB_INTERFACE__DB_ERROR;
     }
-    sqlite3_free(zErrMsg);
 
     // Create planner_items table.
     sqldum = "CREATE TABLE items("
@@ -435,9 +467,10 @@ static void createDbV1()
         " exp INTEGER NOT NULL,"
         " done INTEGER NOT NULL"
     ");";
-    dbErrCode = sqlite3_exec(dbFile, sqldum, 0, 0, &zErrMsg);
-    if (dbErrCode) {
-        fprintf(stderr, "Error while creating \"items\" table: %s\n.", zErrMsg);
+    rc = sqlite3_exec(dbFile, sqldum, 0, 0, NULL);
+    if (rc) {
+        return DB_INTERFACE__DB_ERROR;
     }
-    sqlite3_free(zErrMsg);
+
+    return DB_INTERFACE__OK;
 }
