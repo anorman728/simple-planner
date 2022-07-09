@@ -301,8 +301,10 @@ static PlannerItem **getFromWhere(char *where, int *values, int count)
  */
 static int db_interface_build_err__db(char **str)
 {
+    int dbCode = sqlite3_errcode(dbFile);;
     char *fmt = "Database error: %d. ";
-    int strlen01 = snprintf(NULL, 0, fmt, dbErrCode);
+
+    int strlen01 = snprintf(NULL, 0, fmt, dbCode);
 
     char *dbMsg = (char *) sqlite3_errmsg(dbFile);
 
@@ -313,7 +315,7 @@ static int db_interface_build_err__db(char **str)
         return DB_INTERFACE__OUT_OF_MEMORY;
     }
 
-    snprintf(*str, sizedum, fmt, dbErrCode);
+    snprintf(*str, sizedum, fmt, dbCode);
     strcat(*str, dbMsg);
 
     return DB_INTERFACE__OK;
