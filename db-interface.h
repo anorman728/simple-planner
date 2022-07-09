@@ -18,7 +18,7 @@ char db_interface_initialize(char *filename);
 
 char db_interface_finalize();
 
-void db_interface_save(PlannerItem *items[]);
+char db_interface_save(PlannerItem *items[]);
 
 int db_interface_get_db_err();
 

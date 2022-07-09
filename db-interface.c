@@ -9,8 +9,8 @@
 /** var dbFile Pointer to sqlite3 database object. */
 static sqlite3 *dbFile;
 
-static void saveNew(PlannerItem *item);
-static void saveExisting(PlannerItem *item);
+static char saveNew(PlannerItem *item);
+static char saveExisting(PlannerItem *item);
 static PlannerItem **getFromWhere(char *where, int *values, int count);
 
 static char db_interface_build_err__db(char **str);
@@ -72,18 +72,25 @@ char db_interface_finalize()
  *
  * @param   items   Array of items to save.
  */
-void db_interface_save(PlannerItem *items[])
+char db_interface_save(PlannerItem *items[])
 {
     int i = 0;
+    char rc;
 
     while (items[i] != NULL) {
         if (items[i]->id == 0) {
-            saveNew(items[i]);
+            if ((rc = saveNew(items[i]))) {
+                return rc;
+            }
         } else {
-            saveExisting(items[i]);
+            if ((rc = saveExisting(items[i]))) {
+                return rc;
+            }
         }
         i++;
     }
+
+    return DB_INTERFACE__OK;
 }
 
 /**
@@ -173,27 +180,46 @@ PlannerItem **db_interface_range(Date lower, Date upper)
 // Static functions below this line.
 
 /**
- * Save a new record to the database, and save the id.
+ * Save a new record to the database, and save the id.  Returns rc.
  *
  * @param   item    A PlannerItem pointer.
  */
-static void saveNew(PlannerItem *item)
+static char saveNew(PlannerItem *item)
 {
     char *insertRow = "INSERT INTO items(date, desc, rep, exp, done) \
         VALUES (?, ?, ?, ?, ?);";
 
     sqlite3_stmt *stmt;
 
-    dbErrCode = sqlite3_prepare_v2(dbFile, insertRow, -1, &stmt, 0);
+    if (sqlite3_prepare_v2(dbFile, insertRow, -1, &stmt, 0)) {
+        return DB_INTERFACE__DB_ERROR;
+    }
 
-    dbErrCode = sqlite3_bind_int(stmt, 1, toInt(item->date));
-    dbErrCode = sqlite3_bind_text(stmt, 2, item->desc, -1, 0);
-    dbErrCode = sqlite3_bind_int(stmt, 3, item->rep);
-    dbErrCode = sqlite3_bind_int(stmt, 4, toInt(item->exp));
-    dbErrCode = sqlite3_bind_int(stmt, 5, item->done);
+    int bindints[8];
+    bindints[0] = 1;
+    bindints[1] = toInt(item->date);
 
-    if ((dbErrCode = sqlite3_step(stmt)) != SQLITE_ROW) {
-        // TODO: Return here.
+    bindints[2] = 3;
+    bindints[3] = item->rep;
+
+    bindints[4] = 4;
+    bindints[5] = toInt(item->exp);
+
+    bindints[6] = 5;
+    bindints[7] = item->done;
+
+    for (int i = 0; i < 8; i += 2) {
+        if (sqlite3_bind_int(stmt, bindints[i], bindints[i+1])) {
+            return DB_INTERFACE__DB_ERROR;
+        }
+    }
+
+    if (sqlite3_bind_text(stmt, 2, item->desc, -1, 0)) {
+        return DB_INTERFACE__DB_ERROR;
+    }
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        return DB_INTERFACE__DB_ERROR;
     }
 
     long iddum;
@@ -201,7 +227,11 @@ static void saveNew(PlannerItem *item)
 
     item->id = iddum;
 
-    dbErrCode = sqlite3_finalize(stmt);
+    if (sqlite3_finalize(stmt)) {
+        return DB_INTERFACE__DB_ERROR;
+    }
+
+    return DB_INTERFACE__OK;
 }
 
 /**
@@ -209,27 +239,52 @@ static void saveNew(PlannerItem *item)
  *
  * @param   item    A PlannerItem pointer.
  */
-static void saveExisting(PlannerItem *item)
+static char saveExisting(PlannerItem *item)
 {
     char *updateRow = "UPDATE items SET date = ?, desc = ?, rep = ?, exp = ?,"
      " done = ? WHERE id = ?;";
 
     sqlite3_stmt *stmt;
 
-    dbErrCode = sqlite3_prepare_v2(dbFile, updateRow, -1, &stmt, 0);
-
-    dbErrCode = sqlite3_bind_int(stmt,1, toInt(item->date));
-    dbErrCode = sqlite3_bind_text(stmt,2, item->desc, -1, 0);
-    dbErrCode = sqlite3_bind_int(stmt,3, item->rep);
-    dbErrCode = sqlite3_bind_int(stmt,4, toInt(item->exp));
-    dbErrCode = sqlite3_bind_int(stmt,5, item->done);
-    dbErrCode = sqlite3_bind_int(stmt,6, item->id);
-
-    if ((dbErrCode = sqlite3_step(stmt)) != SQLITE_ROW) {
-        // TODO: Return here.
+    if (sqlite3_prepare_v2(dbFile, updateRow, -1, &stmt, 0)) {
+        return DB_INTERFACE__DB_ERROR;
     }
 
-    dbErrCode = sqlite3_finalize(stmt);
+    int bindints[10];
+    bindints[0] = 1;
+    bindints[1] = toInt(item->date);
+
+    bindints[2] = 3;
+    bindints[3] = item->rep;
+
+    bindints[4] = 4;
+    bindints[5] = toInt(item->exp);
+
+    bindints[6] = 5;
+    bindints[7] = item->done;
+
+    bindints[8] = 6;
+    bindints[9] = item->id;
+
+    for (int i = 0; i < 10; i += 2) {
+        if (sqlite3_bind_int(stmt, bindints[i], bindints[i+1])) {
+            return DB_INTERFACE__DB_ERROR;
+        }
+    }
+
+    if (sqlite3_bind_text(stmt, 2, item->desc, -1, 0)) {
+        return DB_INTERFACE__DB_ERROR;
+    }
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        return DB_INTERFACE__DB_ERROR;
+    }
+
+    if (sqlite3_finalize(stmt)) {
+        return DB_INTERFACE__DB_ERROR;
+    }
+
+    return DB_INTERFACE__OK;
 }
 
 /**
@@ -294,6 +349,8 @@ static PlannerItem **getFromWhere(char *where, int *values, int count)
         }
     }
     returnVal[final] = NULL;
+    // TODO: Need to check result from sqlite3_step!  If it's not SQLITE_DONE at
+    // this point, then there's an error.
 
     dbErrCode = sqlite3_finalize(stmt);
 
