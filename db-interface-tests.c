@@ -28,7 +28,14 @@ void testSavingMultipleRecords()
 
     deleteFileIfExists(testDb);
 
-    db_interface_initialize(testDb);
+    char rc;
+
+    rc = db_interface_initialize(testDb);
+
+    if (rc) {
+        printf("ERROR: Could not initialize DB.\n");
+        return;
+    }
 
     char *desc = "test entry 9631";
 
@@ -118,7 +125,12 @@ void testSavingMultipleRecords()
     freeItem(firstRec);
     freeItem(secondRec);
 
-    db_interface_finalize();
+    rc = db_interface_finalize();
+
+    if (rc) {
+        printf("ERROR: Could not finalize DB.  Found %d.\n", rc);
+        return;
+    }
 
     printf("...Completed testSavingMultipleRecords.\n");
 }
@@ -127,8 +139,14 @@ void testGettingRecordsFromRange()
 {
     printf("...Starting testGettingMultipleRecords.\n");
 
+    char rc;
+
     deleteFileIfExists(testDb);
-    db_interface_initialize(testDb);
+    rc = db_interface_initialize(testDb);
+
+    if (rc) {
+        printf("ERROR: Could not initialize db. %d\n", rc);
+    }
 
     // Build multiple items to put into db.
 
@@ -199,7 +217,11 @@ void testGettingRecordsFromRange()
     // I just happen to know that there are three for this.  Will be removed in
     // future version.
 
-    db_interface_finalize();
+    rc = db_interface_finalize();
+
+    if (rc) {
+        printf("ERROR:  Could not finalize db. %d\n", rc);
+    }
 
     printf("...Completed testGettingRecordsFromRange.\n");
 }
@@ -215,7 +237,7 @@ void testBuildError()
     rc = db_interface_initialize(testDb);
 
     if (rc) {
-        printf("ERROR: Couldn't even initialize DB.\n");
+        printf("ERROR: Could not initialize DB.  Found %d.\n", rc);
         return;
     }
 
@@ -248,9 +270,14 @@ void testBuildError()
         printf("FAILURE: String is not set as expected or interface error.\n");
     }
 
-    db_interface_finalize();
     free(str);
     str = NULL;
+
+    rc = db_interface_finalize();
+
+    if (rc) {
+        printf("ERROR: Could not finalize DB.  Found %d.\n", rc);
+    }
 
     printf("...Completed testBuildError.\n");
 }

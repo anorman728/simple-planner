@@ -16,7 +16,7 @@ const char DB_INTERFACE__OUT_OF_MEMORY;
 
 char db_interface_initialize(char *filename);
 
-void db_interface_finalize();
+char db_interface_finalize();
 
 void db_interface_save(PlannerItem *items[]);
 

@@ -55,10 +55,16 @@ char db_interface_initialize(char *filename)
 /**
  * Close the database file.
  */
-void db_interface_finalize()
+char db_interface_finalize()
 {
     // https://sqlite.org/c3ref/close.html
-    dbErrCode = sqlite3_close(dbFile);
+    int rc = sqlite3_close(dbFile);
+
+    if (rc) {
+        return DB_INTERFACE__DB_ERROR;
+    }
+
+    return DB_INTERFACE__OK;
 }
 
 /**
