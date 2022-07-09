@@ -46,7 +46,7 @@ int sandboxing()
  */
 static void buildItemTest()
 {
-    printf("Starting buildItemTest.\n");
+    printf("...Starting buildItemTest.\n");
 
     PlannerItem *itmDum = buildItemDummyFunction();
 
@@ -71,7 +71,7 @@ static void buildItemTest()
 
     freeItem(itmDum);
 
-    printf("Finished buildItemTest.\n");
+    printf("...Finished buildItemTest.\n");
 }
 
 // Helper functions below this line.
@@ -93,7 +93,7 @@ static PlannerItem *buildItemDummyFunction()
     int rc = buildItem(&itm, 0, dateObj, "Planner description 436", rep_W, exp, -1);
 
     if (rc != PLANNER_STATUS__OK) {
-        printf("buildItemDummyFunction: Received error: %d\n.", rc);
+        printf("...buildItemDummyFunction: Received error: %d\n.", rc);
         exit(EXIT_FAILURE);
     }
 

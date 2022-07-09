@@ -29,7 +29,7 @@ int main()
  */
 void testToInt()
 {
-    printf("Starting testToInt.\n");
+    printf("...Starting testToInt.\n");
 
     struct tm baseDate = {};
     baseDate.tm_year = 101;
@@ -74,7 +74,7 @@ void testToInt()
         }
     }
 
-    printf("Finished testToInt.\n");
+    printf("...Finished testToInt.\n");
 }
 
 /**
@@ -82,7 +82,7 @@ void testToInt()
  */
 void testToString()
 {
-    printf("Starting testToString.\n");
+    printf("...Starting testToString.\n");
 
     Date testObj = buildDate(3, 5, 21); // June 22, 2004.
 
@@ -94,7 +94,7 @@ void testToString()
 
     free(result);
 
-    printf("Finished testToString.\n");
+    printf("...Finished testToString.\n");
 }
 
 /**
@@ -107,7 +107,7 @@ void testToIntErrorHandling()
     // it.  When I learn the more "proper" way to do things, I might end up
     // getting rid of this altogether.
 
-    printf("Starting testToIntErrorHandling.\n");
+    printf("...Starting testToIntErrorHandling.\n");
 
     // Test that negative day, month, or year returns zero.
     Date dateObj = {};
@@ -137,7 +137,7 @@ void testToIntErrorHandling()
     dateObj.year = 5772805;
     testToIntErrorHandlingHelper("year range", dateObj);
 
-    printf("Finished testToIntErrorHandling.\n");
+    printf("...Finished testToIntErrorHandling.\n");
 }
 
 /**
@@ -145,7 +145,7 @@ void testToIntErrorHandling()
  */
 void testGetWeekday()
 {
-    printf("Starting testGetWeekday.\n");
+    printf("...Starting testGetWeekday.\n");
 
     Date dateObj = {};
     dateObj.day = 17;
@@ -158,7 +158,7 @@ void testGetWeekday()
         printf("FAILURE expected 5 (Friday), but found %d.\n", res);
     }
 
-    printf("Finished testGetWeekday.\n");
+    printf("...Finished testGetWeekday.\n");
 }
 
 
@@ -171,7 +171,7 @@ void testToIntErrorHandlingHelper(char * errPrint, Date dateObj)
 {
     int res;
 
-    fprintf(stderr, "This should be error for");
+    fprintf(stderr, "...This should be error for");
     fprintf(stderr, " %s: ", errPrint);
     if ((res = toInt(dateObj)) != -1) {
         printf("FAILURE Result is not -1 for %s.  Found %d.\n", errPrint, res);

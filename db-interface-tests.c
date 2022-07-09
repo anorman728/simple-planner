@@ -24,7 +24,7 @@ int main()
 
 void testSavingMultipleRecords()
 {
-    printf("Starting testSavingMultipleRecords.\n");
+    printf("...Starting testSavingMultipleRecords.\n");
 
     deleteFileIfExists(testDb);
 
@@ -53,7 +53,7 @@ void testSavingMultipleRecords()
 
     long returned_id = testObj->id;
 
-    printf("Inserted object resulting in id #%ld\n", returned_id);
+    printf("...Inserted object resulting in id #%ld\n", returned_id);
 
     // Check the results.  (Also tests db_interface_get.)
 
@@ -97,7 +97,7 @@ void testSavingMultipleRecords()
     db_interface_save(testObjs2);
 
     long second_returned_id = testObj2->id;
-    printf("Inserted second object resulting in id #%ld\n", second_returned_id);
+    printf("...Inserted second object resulting in id #%ld\n", second_returned_id);
 
     // Go ahead and free these-- They're not needed anymore.
     freeItem(testObj);
@@ -120,12 +120,12 @@ void testSavingMultipleRecords()
 
     db_interface_finalize();
 
-    printf("Completed testSavingMultipleRecords.\n");
+    printf("...Completed testSavingMultipleRecords.\n");
 }
 
 void testGettingRecordsFromRange()
 {
-    printf("Starting testGettingMultipleRecords.\n");
+    printf("...Starting testGettingMultipleRecords.\n");
 
     deleteFileIfExists(testDb);
     db_interface_initialize(testDb);
@@ -201,12 +201,12 @@ void testGettingRecordsFromRange()
 
     db_interface_finalize();
 
-    printf("Completed testGettingRecordsFromRange.\n");
+    printf("...Completed testGettingRecordsFromRange.\n");
 }
 
 void testBuildError()
 {
-    printf("Starting testBuildError.\n");
+    printf("...Starting testBuildError.\n");
 
     deleteFileIfExists(testDb);
     db_interface_initialize(testDb);
@@ -219,7 +219,7 @@ void testBuildError()
     rc = db_interface_build_err(&str, DB_INTERFACE__DB_ERROR);
 
     if (rc) {
-        printf("Out of memory on first call to db_interface_build_err.\n");
+        printf("ERROR: Out of memory on first call to db_interface_build_err.\n");
     }
 
     if (strcmp(str, "Database error: 1. near \"definitely\": syntax error") != 0) {
@@ -232,7 +232,7 @@ void testBuildError()
     rc = db_interface_build_err(&str, DB_INTERFACE__OK);
 
     if (rc) {
-        printf("Out of memory on second call to db_interface_build_err.\n");
+        printf("ERROR: Out of memory on second call to db_interface_build_err.\n");
     }
 
     if (strcmp(str, "Interface error: 0.") != 0) {
@@ -243,7 +243,7 @@ void testBuildError()
     free(str);
     str = NULL;
 
-    printf("Completed testBuildError.\n");
+    printf("...Completed testBuildError.\n");
 }
 
 
