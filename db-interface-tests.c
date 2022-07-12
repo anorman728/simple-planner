@@ -141,7 +141,9 @@ void testGettingRecordsFromRange()
         buildDate(0, 1, 1), // Doesn't matter.
         -1 // Doesn't matter
     );
-    db_interface_save(testObj);
+    if ((rc = db_interface_save(testObj))) {
+        printError("first save", rc);
+    }
     freeItem(testObj);
 
     buildItem(
@@ -153,7 +155,9 @@ void testGettingRecordsFromRange()
         buildDate(0, 1, 1), // Doesn't matter.
         -1
     );
-    db_interface_save(testObj);
+    if ((rc = db_interface_save(testObj))) {
+        printError("second save", rc);
+    }
     freeItem(testObj);
 
     buildItem(
@@ -165,7 +169,9 @@ void testGettingRecordsFromRange()
         buildDate(0, 1, 1), // Doesn't matter.
         -1
     );
-    db_interface_save(testObj);
+    if ((rc = db_interface_save(testObj))) {
+        printError("third save", rc);
+    }
     freeItem(testObj);
 
     buildItem(
@@ -177,7 +183,9 @@ void testGettingRecordsFromRange()
         buildDate(0, 1, 1), // Doesn't matter.
         -1
     );
-    db_interface_save(testObj);
+    if ((rc = db_interface_save(testObj))) {
+        printError("fourth save", rc);
+    }
     freeItem(testObj);
 
     PlannerItem *result;
@@ -196,14 +204,11 @@ void testGettingRecordsFromRange()
     }
 
     if (rc) {
-        printf("FAILURE: Final call to db_interface_range did not return OK."
-        " Found %d.", rc);
+        printError("final call to db_interface_rage", rc);
     }
 
-    rc = db_interface_finalize();
-
-    if (rc) {
-        printf("ERROR:  Could not finalize db. %d\n", rc);
+    if ((rc = db_interface_finalize())) {
+        printError("Could not finalize db.", rc);
     }
 
     printf("...Completed testGettingRecordsFromRange.\n");
@@ -220,7 +225,7 @@ void testBuildError()
     rc = db_interface_initialize(testDb);
 
     if (rc) {
-        printf("ERROR: Could not initialize DB.  Found %d.\n", rc);
+        printError("Could not initialize DB.", rc);
         return;
     }
 
@@ -231,7 +236,7 @@ void testBuildError()
     rc = db_interface_build_err(&str, DB_INTERFACE__DB_ERROR);
 
     if (rc) {
-        printf("ERROR: Out of memory on first call to db_interface_build_err.\n");
+        printError("Out of memory on first call to db_interface_build_err", rc);
         return;
     }
 
@@ -245,7 +250,7 @@ void testBuildError()
     rc = db_interface_build_err(&str, DB_INTERFACE__OK);
 
     if (rc) {
-        printf("ERROR: Out of memory on second call to db_interface_build_err.\n");
+        printError("Out of memory on second call to db_interface_build_err.", rc);
         return;
     }
 
@@ -259,7 +264,7 @@ void testBuildError()
     rc = db_interface_finalize();
 
     if (rc) {
-        printf("ERROR: Could not finalize DB.  Found %d.\n", rc);
+        printError("Could not finalize DB.", rc);
     }
 
     printf("...Completed testBuildError.\n");
