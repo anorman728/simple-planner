@@ -72,22 +72,18 @@ char db_interface_finalize()
  *
  * @param   items   Array of items to save.
  */
-char db_interface_save(PlannerItem *items[])
+char db_interface_save(PlannerItem *item)
 {
-    int i = 0;
     char rc;
 
-    while (items[i] != NULL) {
-        if (items[i]->id == 0) {
-            if ((rc = saveNew(items[i]))) {
-                return rc;
-            }
-        } else {
-            if ((rc = saveExisting(items[i]))) {
-                return rc;
-            }
+    if (item->id == 0) {
+        if ((rc = saveNew(item))) {
+            return rc;
         }
-        i++;
+    } else {
+        if ((rc = saveExisting(item))) {
+            return rc;
+        }
     }
 
     return DB_INTERFACE__OK;

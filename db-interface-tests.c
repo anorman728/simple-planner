@@ -51,12 +51,7 @@ void testSavingMultipleRecords()
         0
     );
 
-    PlannerItem *testObjs[2];
-
-    testObjs[0] = testObj;
-    testObjs[1] = NULL;
-
-    db_interface_save(testObjs);
+    db_interface_save(testObj);
 
     long returned_id = testObj->id;
 
@@ -75,55 +70,26 @@ void testSavingMultipleRecords()
     freeItem(retrieved);
 
 
-    // Test saving an existing item *with* another new item.
+    // Test saving an existing item.
 
-    desc = "second test entry 5316";
-
-    PlannerItem *testObj2;
-
-    buildItem(
-        &testObj2,
-        0,
-        buildDate(12, 7, 15),
-        desc,
-        rep_W,
-        buildDate(31, 1, 1),
-        -1
-    );
-
-    // Change the description of first to check that it's being saved.
+    // Change the description to check that it's being saved.
     char *newstr = "new description 72713616";
     testObj->desc = (char *) realloc(testObj->desc, strlen(newstr) + 1);
     strcpy(testObj->desc, newstr);
 
-    PlannerItem *testObjs2[3];
-    testObjs2[0] = testObj;
-    testObjs2[1] = testObj2;
-    testObjs2[2] = NULL;
-
-    db_interface_save(testObjs2);
-
-    long second_returned_id = testObj2->id;
-    printf("...Inserted second object resulting in id #%ld\n", second_returned_id);
+    db_interface_save(testObj);
 
     // Go ahead and free these-- They're not needed anymore.
     freeItem(testObj);
-    freeItem(testObj2);
 
     // Now test the results.
     PlannerItem *firstRec = db_interface_get(returned_id);
-    PlannerItem *secondRec = db_interface_get(second_returned_id);
 
     if (strcmp(firstRec->desc, newstr) != 0) {
         printf("FAILURE: desc not retrieved correctly on first record when saved second time.\n");
     }
 
-    if (strcmp(secondRec->desc, desc)!= 0) {
-        printf("FAILURE: desc not retrieved correctly on second record.\n");
-    }
-
     freeItem(firstRec);
-    freeItem(secondRec);
 
     rc = db_interface_finalize();
 
@@ -150,13 +116,13 @@ void testGettingRecordsFromRange()
 
     // Build multiple items to put into db.
 
-    PlannerItem **testArr = malloc(5 * (sizeof *testArr));
-
     char *inRes = "In results";
     char *notInRes = "Not in results.";
 
+    PlannerItem *testObj;
+
     buildItem(
-        &testArr[0],
+        &testObj,
         0,
         buildDate(22, 6, 1),
         notInRes,
@@ -164,8 +130,11 @@ void testGettingRecordsFromRange()
         buildDate(0, 1, 1), // Doesn't matter.
         -1 // Doesn't matter
     );
+    db_interface_save(testObj);
+    freeItem(testObj);
+
     buildItem(
-        &testArr[1],
+        &testObj,
         0,
         buildDate(22, 6, 5),
         inRes,
@@ -173,8 +142,11 @@ void testGettingRecordsFromRange()
         buildDate(0, 1, 1), // Doesn't matter.
         -1
     );
+    db_interface_save(testObj);
+    freeItem(testObj);
+
     buildItem(
-        &testArr[2],
+        &testObj,
         0,
         buildDate(22, 6, 10),
         inRes,
@@ -182,8 +154,11 @@ void testGettingRecordsFromRange()
         buildDate(0, 1, 1), // Doesn't matter.
         -1
     );
+    db_interface_save(testObj);
+    freeItem(testObj);
+
     buildItem(
-        &testArr[3],
+        &testObj,
         0,
         buildDate(22, 6, 15),
         notInRes,
@@ -191,11 +166,8 @@ void testGettingRecordsFromRange()
         buildDate(0, 1, 1), // Doesn't matter.
         -1
     );
-    testArr[4] = NULL;
-
-    db_interface_save(testArr);
-    freeAll(testArr);
-    // Go ahead and destroy these; we're going to find them in the database.
+    db_interface_save(testObj);
+    freeItem(testObj);
 
     PlannerItem **resultArr = db_interface_range(
         buildDate(22,6,5),
