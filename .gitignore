@@ -3,3 +3,4 @@
 /debug
 *.run
 /sandbox.c
+/compilesandbox.sh
