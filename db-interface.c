@@ -11,7 +11,9 @@ static sqlite3 *dbFile;
 
 static char saveNew(PlannerItem *item);
 static char saveExisting(PlannerItem *item);
-static PlannerItem **getFromWhere(char *where, int *values, int count);
+static int getFromWhere(PlannerItem **result, char *where, int *values, int count);
+static int getFromWherePrepare(char *where, int *values, int count);
+
 
 static char db_interface_build_err__db(char **str);
 static char db_interface_build_err__ifce(char **str, int code);
@@ -30,6 +32,10 @@ const char DB_INTERFACE__OK = 0;
 const char DB_INTERFACE__DB_ERROR = 1;
 
 const char DB_INTERFACE__OUT_OF_MEMORY = 2;
+
+const char DB_INTERFACE__CONT = 3;
+
+const char DB_INTERFACE__PLANNER = 4;
 
 
 /**
@@ -91,6 +97,9 @@ char db_interface_save(PlannerItem *item)
 
 /**
  * Get the most recent error code from SQLite.
+ *
+ * NOTE: This doesn't seem to work for SQL misuse!  Making this function largely
+ * untrustworthy.  Should refactor not to depend on the most recent error.
  */
 int db_interface_get_db_err()
 {
@@ -138,38 +147,48 @@ void _db_interface_create_db_err()
 /**
  * Retrieve single PlannerItem object.
  *
- * @param   id  Id of row to retrieve.
+ * @param   result  Result passed back by argument.
+ * @param   id      Id of row to retrieve.
  */
-PlannerItem *db_interface_get(int id)
+char db_interface_get(PlannerItem **result, int id)
 {
     int vals[1];
     vals[0] = id;
 
-    PlannerItem **dumval = getFromWhere("id = ?", vals, 1);
+    int rc = getFromWhere(result, "id = ?", vals, 1);
 
-    PlannerItem *returnVal = dumval[0];
+    if (rc != DB_INTERFACE__CONT && rc != DB_INTERFACE__OK) {
+        return DB_INTERFACE__DB_ERROR;
+    }
 
-    free(dumval); // Need to free the array itself, since it's on the heap.
-    // Don't need to free second object.  It's a null pointer.
+    rc = getFromWhere(result, "", vals, 0); // Just need to complete.
 
-    return returnVal;
+    if (rc) {
+        // If it says "cont", that's still a problem in this case.
+        // TODO: But I still need to handle that differently, because right now
+        // it's pretty opaque.
+        return DB_INTERFACE__DB_ERROR;
+    }
+
+    return DB_INTERFACE__OK;
 }
 
 /**
- * Retrieve array of PlannerItem pointers from date range.
+ * Iterate through PlannerItem pointers from date range.  Returns
+ * DB_INTERFACE__CONT when it successfully returns an item and DB_INTERFACE__OK
+ * when the items to retrieve have been exhausted.
  *
- * Last object is null pointer, signifying end of array.
- *
+ * @param   result  Result passed back by argument.
  * @param   lower   Lower bound (inclusive)
  * @param   upper   Upper bound (inclusive)
  */
-PlannerItem **db_interface_range(Date lower, Date upper)
+char db_interface_range(PlannerItem **result, Date lower, Date upper)
 {
     int vals[2];
     vals[0] = toInt(upper);
     vals[1] = toInt(lower);
 
-    return getFromWhere("date <= ? AND date >= ?", vals, 2);
+    return getFromWhere(result, "date <= ? AND date >= ?", vals, 2);
 }
 
 
@@ -283,74 +302,109 @@ static char saveExisting(PlannerItem *item)
     return DB_INTERFACE__OK;
 }
 
+/** Module-scope object for use specifically with getFromWhere. */
+sqlite3_stmt *stmtGfw = NULL;
+
 /**
- * Get an array of PlannerItem pointers from where clause and the integers to be
- * bound to it.  (This assumes only integers will be bound.)  Resulting array is
- * on heap and needs to be freed.
+ * Iterate over PlannerItem pointers from where clause and the integers to be
+ * bound to it.  (This assumes only integers will be bound.)
  *
- * Last object in returned array is null pointer to signify end of list.
+ * Results dumped into `result` argument one at a time.  Returns
+ * DB_INTERFACE__CONT if there are more results to be retrieved, or
+ * DB_INTERFACE__OK when done.  Sets result to NULL if there's nothing to do.
  *
  * Helper method for db_interface_get and db_interface_range.
  *
+ * @param   result  Result passed back by argument.
  * @param   where   WHERE clause, including ?s.
  * @param   values  Array of integers to bind.
  * @param   count   Number of integers to bind (i.e., count of "values").
  */
-static PlannerItem **getFromWhere(char *where, int *values, int count)
+static int getFromWhere(PlannerItem **result, char *where, int *values, int count)
+{
+    int rc; // This is used in multiple contexts.
+
+    if (stmtGfw == NULL) {
+        if ((rc = getFromWherePrepare(where, values, count))) {
+            return rc;
+        }
+    }
+
+    rc = sqlite3_step(stmtGfw);
+
+    if (rc == SQLITE_DONE) {
+        // If SQLITE_DONE is returned, that means that it's *already* returned
+        // the final row.
+        result = NULL;
+        rc = sqlite3_finalize(stmtGfw);
+        stmtGfw = NULL;
+
+        if (rc) {
+            return DB_INTERFACE__DB_ERROR;
+        }
+
+        return DB_INTERFACE__OK;
+    }
+
+    if (rc != SQLITE_ROW) {
+        return DB_INTERFACE__DB_ERROR;
+    }
+
+    rc = buildItem(
+        result,
+        sqlite3_column_int(stmtGfw, 0),
+        toDate(sqlite3_column_int(stmtGfw, 1)),
+        (char *) sqlite3_column_text(stmtGfw, 2),
+        sqlite3_column_int(stmtGfw, 3),
+        toDate(sqlite3_column_int(stmtGfw, 4)),
+        sqlite3_column_int(stmtGfw, 5)
+    );
+
+    if (rc != PLANNER_STATUS__OK) {
+        sqlite3_finalize(stmtGfw); // Don't bother with RC here.
+        stmtGfw = NULL;
+        freeItem(*result); // Result can't be trusted.
+        result = NULL;
+        return DB_INTERFACE__PLANNER;
+    }
+
+    return DB_INTERFACE__CONT;
+}
+
+/**
+ * Prepare statement for getFromWhere.  Helper function for getFromWhere.
+ *
+ * @param   where   Directly passed by getFromWhere.
+ * @param   values  Directly passed by getFromWhere.
+ * @param   count   Directly passed by getFromWhere.
+ */
+static int getFromWherePrepare(char *where, int *values, int count)
 {
     // Build SQL.
 
     char *sqldum = "SELECT id,date,desc,rep,exp,done FROM items WHERE ";
-    // Not using "SELECT *" because the columns are only identified by number,
-    // so explicitly naming the columns makes it more future-proof and easier to
-    // update.
+    // Not using "SELECT *" because the columns are only identified by
+    // number, so explicitly naming the columns makes it more future-proof
+    // and easier to update.
 
     char sql[strlen(sqldum) + strlen(where) + 2]; // Semicol and null term.
     strcpy(sql, sqldum);
     strcat(sql, where);
     strcat(sql, ";");
 
-    // Make prepared statement and bind values.
-
-    sqlite3_stmt *stmt;
     // https://sqlite.org/c3ref/prepare.html
-    dbErrCode = sqlite3_prepare_v2(dbFile, sql, -1, &stmt, 0);
+    if (sqlite3_prepare_v2(dbFile, sql, -1, &stmtGfw, 0)) {
+        return DB_INTERFACE__DB_ERROR;
+    }
 
     for (int i = 0; i < count; i++) {
         // https://sqlite.org/c3ref/bind_blob.html
-        dbErrCode = sqlite3_bind_int(stmt, i + 1, values[i]);
-    }
-
-    int final = 0;
-    int rc;
-    PlannerItem **returnVal = malloc(sizeof *returnVal);
-    // Will be at least one, for the null at the end.
-
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        returnVal = realloc(returnVal, (++final + 1) * (sizeof *returnVal));
-
-        rc = buildItem(
-            &returnVal[final - 1],
-            sqlite3_column_int(stmt, 0),
-            toDate(sqlite3_column_int(stmt, 1)),
-            (char *) sqlite3_column_text(stmt, 2),
-            sqlite3_column_int(stmt, 3),
-            toDate(sqlite3_column_int(stmt, 4)),
-            sqlite3_column_int(stmt, 5)
-        );
-
-        if (rc != PLANNER_STATUS__OK) {
-            printf("db-interface.getFromWhere: Received error %d.  Exiting.\n.", rc);
-            exit(EXIT_FAILURE);
+        if (sqlite3_bind_int(stmtGfw, i + 1, values[i])) {
+            return DB_INTERFACE__DB_ERROR;
         }
     }
-    returnVal[final] = NULL;
-    // TODO: Need to check result from sqlite3_step!  If it's not SQLITE_DONE at
-    // this point, then there's an error.
 
-    dbErrCode = sqlite3_finalize(stmt);
-
-    return returnVal;
+    return DB_INTERFACE__OK;
 }
 
 /**

@@ -81,7 +81,7 @@ int toInt(Date dateObj)
 }
 
 /**
- * Convert Date object to a string in form Y-m-d.
+ * Convert Date object to a string in form Y-m-d.  RETURNS OBJECT ON HEAP!
  *
  * @param   dateObj
  */

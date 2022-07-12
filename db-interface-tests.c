@@ -7,33 +7,32 @@
 #include "planner-functions.h"
 
 void testBuildError();
-void testSavingMultipleRecords();
+void testSaving();
 void testGettingRecordsFromRange();
 void deleteFileIfExists(char *filename);
+void printError(char *desc, char rc);
 
 char *testDb = "./testing.db";
 
 int main()
 {
     testBuildError();
-    testSavingMultipleRecords();
+    testSaving();
     testGettingRecordsFromRange();
 
     deleteFileIfExists(testDb);
 }
 
-void testSavingMultipleRecords()
+void testSaving()
 {
-    printf("...Starting testSavingMultipleRecords.\n");
+    printf("...Starting testSaving.\n");
 
     deleteFileIfExists(testDb);
 
     char rc;
 
-    rc = db_interface_initialize(testDb);
-
-    if (rc) {
-        printf("ERROR: Could not initialize DB.\n");
+    if ((rc = db_interface_initialize(testDb))) {
+        printError("during initialization", rc);
         return;
     }
 
@@ -51,7 +50,10 @@ void testSavingMultipleRecords()
         0
     );
 
-    db_interface_save(testObj);
+    if ((rc = db_interface_save(testObj))) {
+        printError("during first save", rc);
+        return;
+    }
 
     long returned_id = testObj->id;
 
@@ -59,7 +61,12 @@ void testSavingMultipleRecords()
 
     // Check the results.  (Also tests db_interface_get.)
 
-    PlannerItem *retrieved = db_interface_get(testObj->id);
+    PlannerItem *retrieved;
+
+    if ((rc = db_interface_get(&retrieved, testObj->id))) {
+        printError("during first retrieval",rc);
+        return;
+    }
 
     if (strcmp(retrieved->desc, desc) != 0) {
         printf("FAILURE: desc is not retrieved correctly.\n");
@@ -77,13 +84,19 @@ void testSavingMultipleRecords()
     testObj->desc = (char *) realloc(testObj->desc, strlen(newstr) + 1);
     strcpy(testObj->desc, newstr);
 
-    db_interface_save(testObj);
-
-    // Go ahead and free these-- They're not needed anymore.
+    if ((rc = db_interface_save(testObj))) {
+        printError("during second save", rc);
+        return;
+    }
     freeItem(testObj);
 
     // Now test the results.
-    PlannerItem *firstRec = db_interface_get(returned_id);
+    PlannerItem *firstRec;
+
+    if ((rc = db_interface_get(&firstRec, returned_id))) {
+        printError("during second retrieval", rc);
+        return;
+    }
 
     if (strcmp(firstRec->desc, newstr) != 0) {
         printf("FAILURE: desc not retrieved correctly on first record when saved second time.\n");
@@ -91,14 +104,12 @@ void testSavingMultipleRecords()
 
     freeItem(firstRec);
 
-    rc = db_interface_finalize();
-
-    if (rc) {
-        printf("ERROR: Could not finalize DB.  Found %d.\n", rc);
+    if ((rc = db_interface_finalize())) {
+        printError("during finalization", rc);
         return;
     }
 
-    printf("...Completed testSavingMultipleRecords.\n");
+    printf("...Completed testSaving.\n");
 }
 
 void testGettingRecordsFromRange()
@@ -169,25 +180,25 @@ void testGettingRecordsFromRange()
     db_interface_save(testObj);
     freeItem(testObj);
 
-    PlannerItem **resultArr = db_interface_range(
+    PlannerItem *result;
+
+    while ((rc = db_interface_range(
+        &result,
         buildDate(22,6,5),
         buildDate(22,6,10)
-    );
-
-    int i = 0;
-
-    while (resultArr[i] != NULL) {
-        if (strcmp(resultArr[i]->desc, inRes) != 0) {
-            char *date = toString(resultArr[i]->date);
+    )) == DB_INTERFACE__CONT) {
+        if (strcmp(result->desc, inRes) != 0) {
+            char *date = toString(result->date);
             printf("FAILURE: Found invalid desc in results! In date %s.\n", date);
             free(date);
         }
-        i++;
+        freeItem(result);
     }
 
-    freeAll(resultArr);
-    // I just happen to know that there are three for this.  Will be removed in
-    // future version.
+    if (rc) {
+        printf("FAILURE: Final call to db_interface_range did not return OK."
+        " Found %d.", rc);
+    }
 
     rc = db_interface_finalize();
 
@@ -265,4 +276,11 @@ void deleteFileIfExists(char *filename)
         fclose(file);
         remove(filename);
     }
+}
+
+void printError(char *desc, char rc) {
+    char *str;
+    db_interface_build_err(&str, rc);
+    printf("ERROR %s: %s\n", desc, str);
+    free(str);
 }
