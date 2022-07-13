@@ -60,5 +60,7 @@ void freeItem(PlannerItem *item);
 
 void freeAll(PlannerItem **items);
 
+int planner_functions_build_err(char **str, int code);
+
 
 #endif

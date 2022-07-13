@@ -11,12 +11,13 @@ static sqlite3 *dbFile;
 
 static char saveNew(PlannerItem *item);
 static char saveExisting(PlannerItem *item);
-static int getFromWhere(PlannerItem **result, char *where, int *values, int count);
-static int getFromWherePrepare(char *where, int *values, int count);
+static char getFromWhere(PlannerItem **result, char *where, int *values, int count);
+static char getFromWherePrepare(char *where, int *values, int count);
 
 
 static char db_interface_build_err__db(char **str);
 static char db_interface_build_err__ifce(char **str, int code);
+
 
 static char updateDatabase();
 static char doesDatabaseExist();
@@ -24,6 +25,9 @@ static char createDbV1();
 
 /** This is the error code from SQLite. */
 int dbRc = 0;
+
+/** This is the error code from Planner functions. */
+char pfRc = 0;
 
 // Constants
 
@@ -111,7 +115,7 @@ int db_interface_get_db_err()
  *
  * The resulting string is on heap memory and must be freed!
  *
- * @param   str     HEAP.  Pointer to string.
+ * @param   str     SETS HEAP.  Pointer to string.
  * @param   code    Previously-returned error code.
  */
 char db_interface_build_err(char **str, int code)
@@ -126,6 +130,10 @@ char db_interface_build_err(char **str, int code)
 
     if (code == DB_INTERFACE__DB_ERROR) {
         return db_interface_build_err__db(str);
+    }
+
+    if (code == DB_INTERFACE__PLANNER) {
+        return planner_functions_build_err(str, pfRc);
     }
 
     return db_interface_build_err__ifce(str, code);
@@ -318,9 +326,9 @@ sqlite3_stmt *stmtGfw = NULL;
  * @param   values  Array of integers to bind.
  * @param   count   Number of integers to bind (i.e., count of "values").
  */
-static int getFromWhere(PlannerItem **result, char *where, int *values, int count)
+static char getFromWhere(PlannerItem **result, char *where, int *values, int count)
 {
-    int rc; // This is used in multiple contexts.
+    char rc;
 
     if (stmtGfw == NULL) {
         if ((rc = getFromWherePrepare(where, values, count))) {
@@ -348,7 +356,7 @@ static int getFromWhere(PlannerItem **result, char *where, int *values, int coun
         return DB_INTERFACE__DB_ERROR;
     }
 
-    rc = buildItem(
+    pfRc = buildItem(
         result,
         sqlite3_column_int(stmtGfw, 0),
         toDate(sqlite3_column_int(stmtGfw, 1)),
@@ -358,7 +366,7 @@ static int getFromWhere(PlannerItem **result, char *where, int *values, int coun
         sqlite3_column_int(stmtGfw, 5)
     );
 
-    if (rc != PLANNER_STATUS__OK) {
+    if (pfRc != PLANNER_STATUS__OK) {
         sqlite3_finalize(stmtGfw); // Don't bother with RC here.
         stmtGfw = NULL;
         freeItem(*result); // Result can't be trusted.
@@ -376,7 +384,7 @@ static int getFromWhere(PlannerItem **result, char *where, int *values, int coun
  * @param   values  Directly passed by getFromWhere.
  * @param   count   Directly passed by getFromWhere.
  */
-static int getFromWherePrepare(char *where, int *values, int count)
+static char getFromWherePrepare(char *where, int *values, int count)
 {
     // Build SQL.
 

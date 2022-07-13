@@ -92,3 +92,32 @@ void freeAll(PlannerItem **items)
     free(items);
     items = NULL; // Always set freed ponters to null.
 }
+
+/**
+ * Build error string from return code, for printing.
+ *
+ * The resulting string is on heap memory and must be freed!
+ *
+ * @param   str     SETS HEAP.  Pointer to string.
+ * @param   code    Previously-returned error code.
+ */
+int planner_functions_build_err(char **str, int code)
+{
+    char *strdum;
+
+    switch (code) {
+        case PLANNER_STATUS__OK:
+            strdum = "No error for planner functions.";
+            break;
+        case PLANNER_STATUS__OUT_OF_MEMORY:
+            strdum = "Ran out of memory for planner functions.";
+            break;
+        default:
+            strdum = "Unknown error."; // If this happens, something's wrong.
+    }
+
+    *str = malloc(strlen(strdum) + 1);
+    strcpy(*str, strdum);
+
+    return PLANNER_STATUS__OK;
+}

@@ -4,39 +4,47 @@
 #include <time.h>
 
 #include "planner-functions.h"
-
 #include "date-functions.h"
 
 // Very primitive testing!  No framework atm.
 
+static void buildErrTest();
 static void buildItemTest();
 
 static PlannerItem *buildItemDummyFunction();
 
-int sandboxing();
-
 int main()
 {
-    //return sandboxing();
-
-    // Run test on buildItem.
+    buildErrTest();
     buildItemTest();
 }
 
 /**
- * For piddling around with stuff.
+ * Test planner_functions_build_err function.
  */
-int sandboxing()
+static void buildErrTest()
 {
-    struct tm *datedum = (struct tm *) malloc(sizeof(struct tm));
-    datedum->tm_year = 105;
-    datedum->tm_mon = 1;
-    datedum->tm_mday = 6;
-    mktime(datedum);
+    printf("...Starting buildErrTest.\n");
+    char *str;
 
-    free(datedum);
+    planner_functions_build_err(&str, PLANNER_STATUS__OK);
 
-    return 0;
+    if (strcmp(str, "No error for planner functions.") != 0) {
+        printf("FAILURE: \"OK\" status not returned as expected.\n");
+    }
+
+    free(str);
+
+    planner_functions_build_err(&str, PLANNER_STATUS__OUT_OF_MEMORY);
+
+    if (strcmp(str, "Ran out of memory for planner functions.") != 0) {
+        printf("FAILURE: \"Out of memory status not returned as expected.\n");
+    }
+
+    // Don't really need to test beyond this.
+
+    free(str);
+    printf("...Ending buildErrTest.\n");
 }
 
 /**
