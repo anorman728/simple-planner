@@ -254,8 +254,8 @@ void testBuildError()
         return;
     }
 
-    if (strcmp(str, "Interface error: 0.") != 0) {
-        printf("FAILURE: String is not set as expected or interface error.\n");
+    if (strcmp(str, "No error for db interface.") != 0) {
+        printf("FAILURE: String is not set as expected for interface error.\n");
     }
 
     free(str);

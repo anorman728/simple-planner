@@ -37,8 +37,8 @@ static void buildErrTest()
 
     planner_functions_build_err(&str, PLANNER_STATUS__OUT_OF_MEMORY);
 
-    if (strcmp(str, "Ran out of memory for planner functions.") != 0) {
-        printf("FAILURE: \"Out of memory status not returned as expected.\n");
+    if (strcmp(str, "Out of memory for planner functions.") != 0) {
+        printf("FAILURE: Out of memory status not returned as expected. Found \"%s\".\n", str);
     }
 
     // Don't really need to test beyond this.

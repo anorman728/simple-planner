@@ -449,18 +449,29 @@ static char db_interface_build_err__db(char **str)
  */
 static char db_interface_build_err__ifce(char **str, int code)
 {
-    char *fmt = "Interface error: %d.";
-    // TODO: May want to add strings to this, but not important enough at the
-    // moment.  Right now, there are no interface errors anyway.
-    int strlen01 = snprintf(NULL, 0, fmt, code);
+    char *strdum;
 
-    *str = malloc(strlen01 + 1);
+    switch (code) {
+        case DB_INTERFACE__OK:
+            strdum = "No error for db interface.";
+            break;
+        case DB_INTERFACE__OUT_OF_MEMORY:
+            strdum = "Out of memory or db interface.";
+            break;
+        case DB_INTERFACE__CONT:
+            strdum = "No error: Continue.";
+            break;
+        default:
+            strdum = "Unknown error for db interface.";
+    }
+
+    *str = malloc(strlen(strdum) + 1);
 
     if (str == NULL) {
         return DB_INTERFACE__OUT_OF_MEMORY;
     }
 
-    snprintf(*str, strlen01 + 1, fmt, code);
+    strcpy(*str, strdum);
 
     return DB_INTERFACE__OK;
 }

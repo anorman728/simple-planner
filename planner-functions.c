@@ -110,13 +110,18 @@ int planner_functions_build_err(char **str, int code)
             strdum = "No error for planner functions.";
             break;
         case PLANNER_STATUS__OUT_OF_MEMORY:
-            strdum = "Ran out of memory for planner functions.";
+            strdum = "Out of memory for planner functions.";
             break;
         default:
             strdum = "Unknown error."; // If this happens, something's wrong.
     }
 
     *str = malloc(strlen(strdum) + 1);
+
+    if (str == NULL) {
+        return PLANNER_STATUS__OUT_OF_MEMORY;
+    }
+
     strcpy(*str, strdum);
 
     return PLANNER_STATUS__OK;
