@@ -15,16 +15,16 @@
  * The maximum number of days in a month, and a modulo base we use for
  * conversions to and from integers.
  */
-const int DAYMOD = 31;
+#define DAYMOD 31
 
 /**
  * The maximum number of months in a year, and a factor in a modulo base we
  * use for conversion to and from integers.
  */
-const int MONTHMOD = 12;
+#define MONTHMOD 12
 
 /** The minimum size that this module needs an `int` type to be (in bytes). */
-const char MININTSIZE = 4;
+#define MININTSIZE 4
 
 
 // Forward declarations for helper functions.
