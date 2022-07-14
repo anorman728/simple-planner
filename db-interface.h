@@ -5,15 +5,11 @@
 
 // Constants.
 
-const char DB_INTERFACE__OK;
-
-const char DB_INTERFACE__DB_ERROR;
-
-const char DB_INTERFACE__OUT_OF_MEMORY;
-
-const char DB_INTERFACE__CONT;
-
-const char DB_INTERFACE__PLANNER;
+#define DB_INTERFACE__OK            0
+#define DB_INTERFACE__DB_ERROR      1
+#define DB_INTERFACE__OUT_OF_MEMORY 2
+#define DB_INTERFACE__CONT          3
+#define DB_INTERFACE__PLANNER       4
 
 
 // Functions.

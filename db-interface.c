@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "db-interface.h"
 #include "date-functions.h"
 #include "planner-functions.h"
 
@@ -28,18 +29,6 @@ int dbRc = 0;
 
 /** This is the error code from Planner functions. */
 char pfRc = 0;
-
-// Constants
-
-const char DB_INTERFACE__OK = 0;
-
-const char DB_INTERFACE__DB_ERROR = 1;
-
-const char DB_INTERFACE__OUT_OF_MEMORY = 2;
-
-const char DB_INTERFACE__CONT = 3;
-
-const char DB_INTERFACE__PLANNER = 4;
 
 
 /**
