@@ -10,9 +10,8 @@
 
 // Constants
 
-const char PLANNER_STATUS__OK;
-
-const char PLANNER_STATUS__OUT_OF_MEMORY;
+#define PLANNER_STATUS__OK              0
+#define PLANNER_STATUS__OUT_OF_MEMORY   1
 
 
 typedef enum planner_repenum

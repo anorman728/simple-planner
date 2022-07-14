@@ -5,15 +5,7 @@
 #include <time.h>
 
 #include "planner-functions.h"
-
 #include "date-functions.h"
-
-
-// Constants
-
-const char PLANNER_STATUS__OK = 0;
-
-const char PLANNER_STATUS__OUT_OF_MEMORY = 1;
 
 
 /**
