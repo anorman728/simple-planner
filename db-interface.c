@@ -421,12 +421,22 @@ static char getFromWherePrepare(char *where, int *values, int count)
  */
 static char db_interface_build_err__db(char **str)
 {
-    int dbCode = sqlite3_errcode(dbFile);;
     char *fmt = "Database error: %d. ";
 
-    int strlen01 = snprintf(NULL, 0, fmt, dbCode);
+    int strlen01 = snprintf(NULL, 0, fmt, dbRc);
 
-    char *dbMsg = (char *) sqlite3_errmsg(dbFile);
+    int dbCode = sqlite3_errcode(dbFile);
+    // This is not reliable-- In some cases, it will return zero, so...
+
+    char *dbMsg;
+    if (dbCode) {
+        // ...if it's nonzero, we go ahead and use it, because the message is
+        // more detailed this way, but...
+        dbMsg = (char *) sqlite3_errmsg(dbFile);
+    } else {
+        // ...if it's zero, we use the description according to the code.
+        dbMsg = (char *) sqlite3_errstr(dbRc);
+    }
 
     int sizedum = strlen01 + strlen(dbMsg) + 1;
     *str = malloc(sizedum);
@@ -435,7 +445,7 @@ static char db_interface_build_err__db(char **str)
         return DB_INTERFACE__OUT_OF_MEMORY;
     }
 
-    snprintf(*str, sizedum, fmt, dbCode);
+    snprintf(*str, sizedum, fmt, dbRc);
     strcat(*str, dbMsg);
 
     return DB_INTERFACE__OK;
