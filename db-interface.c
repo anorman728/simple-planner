@@ -30,6 +30,11 @@ int dbRc = 0;
 /** This is the error code from Planner functions. */
 char pfRc = 0;
 
+#define RETURN_ERR_IF_APP(CODE, EXPR, RETVAL) \
+    if ((CODE = (EXPR))) {\
+        return (RETVAL); \
+    }
+
 
 /**
  * Open the database file.  Create one if it doesn't exist.  Returns RC from
@@ -40,11 +45,11 @@ char pfRc = 0;
 char db_interface_initialize(char *filename)
 {
     // https://sqlite.org/c3ref/open.html
-    dbRc = sqlite3_open(filename, &dbFile);
-
-    if (dbRc) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(
+        dbRc,
+        sqlite3_open(filename, &dbFile),
+        DB_INTERFACE__DB_ERROR
+    )
 
     return updateDatabase();
 }
@@ -55,11 +60,11 @@ char db_interface_initialize(char *filename)
 char db_interface_finalize()
 {
     // https://sqlite.org/c3ref/close.html
-    dbRc = sqlite3_close(dbFile);
-
-    if (dbRc) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(
+        dbRc,
+        sqlite3_close(dbFile),
+        DB_INTERFACE__DB_ERROR
+    );
 
     return DB_INTERFACE__OK;
 }
@@ -74,13 +79,9 @@ char db_interface_save(PlannerItem *item)
     char rc;
 
     if (item->id == 0) {
-        if ((rc = saveNew(item))) {
-            return rc;
-        }
+        RETURN_ERR_IF_APP(rc, saveNew(item), rc)
     } else {
-        if ((rc = saveExisting(item))) {
-            return rc;
-        }
+        RETURN_ERR_IF_APP(rc, saveExisting(item), rc)
     }
 
     return DB_INTERFACE__OK;
@@ -156,14 +157,14 @@ char db_interface_get(PlannerItem **result, int id)
         return DB_INTERFACE__DB_ERROR;
     }
 
-    rc = getFromWhere(result, "", vals, 0); // Just need to complete.
-
-    if (rc) {
-        // If it says "cont", that's still a problem in this case.
-        // TODO: But I still need to handle that differently, because right now
-        // it's pretty opaque and will be difficult to debug.
-        return DB_INTERFACE__DB_ERROR;
-    }
+    // If it says "cont", that's still a problem in this case.
+    // TODO: But I still need to handle that differently, because right now
+    // it's pretty opaque and will be difficult to debug.
+    RETURN_ERR_IF_APP(
+        rc,
+        getFromWhere(result, "", vals, 0),
+        DB_INTERFACE__DB_ERROR
+    )
 
     return DB_INTERFACE__OK;
 }
@@ -201,9 +202,11 @@ static char saveNew(PlannerItem *item)
 
     sqlite3_stmt *stmt;
 
-    if ((dbRc = sqlite3_prepare_v2(dbFile, insertRow, -1, &stmt, 0))) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(
+        dbRc,
+        sqlite3_prepare_v2(dbFile, insertRow, -1, &stmt, 0),
+        DB_INTERFACE__DB_ERROR
+    )
 
     int bindints[8];
     bindints[0] = 1;
@@ -219,14 +222,12 @@ static char saveNew(PlannerItem *item)
     bindints[7] = item->done;
 
     for (int i = 0; i < 8; i += 2) {
-        if ((dbRc = sqlite3_bind_int(stmt, bindints[i], bindints[i+1]))) {
-            return DB_INTERFACE__DB_ERROR;
-        }
+        RETURN_ERR_IF_APP(dbRc, sqlite3_bind_int(stmt, bindints[i], bindints[i+1]),
+            DB_INTERFACE__DB_ERROR)
     }
 
-    if ((dbRc = sqlite3_bind_text(stmt, 2, item->desc, -1, 0))) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(dbRc, sqlite3_bind_text(stmt, 2, item->desc, -1, 0),
+        DB_INTERFACE__DB_ERROR);
 
     if ((dbRc = sqlite3_step(stmt) != SQLITE_DONE)) {
         return DB_INTERFACE__DB_ERROR;
@@ -237,9 +238,7 @@ static char saveNew(PlannerItem *item)
 
     item->id = iddum;
 
-    if ((dbRc = sqlite3_finalize(stmt))) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(dbRc, sqlite3_finalize(stmt), DB_INTERFACE__DB_ERROR)
 
     return DB_INTERFACE__OK;
 }
@@ -256,9 +255,8 @@ static char saveExisting(PlannerItem *item)
 
     sqlite3_stmt *stmt;
 
-    if ((dbRc = sqlite3_prepare_v2(dbFile, updateRow, -1, &stmt, 0))) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(dbRc, sqlite3_prepare_v2(dbFile, updateRow, -1, &stmt, 0),
+        DB_INTERFACE__DB_ERROR)
 
     int bindints[10];
     bindints[0] = 1;
@@ -277,22 +275,18 @@ static char saveExisting(PlannerItem *item)
     bindints[9] = item->id;
 
     for (int i = 0; i < 10; i += 2) {
-        if ((dbRc = sqlite3_bind_int(stmt, bindints[i], bindints[i+1]))) {
-            return DB_INTERFACE__DB_ERROR;
-        }
+        RETURN_ERR_IF_APP(dbRc, sqlite3_bind_int(stmt, bindints[i], bindints[i+1]),
+            DB_INTERFACE__DB_ERROR)
     }
 
-    if ((dbRc = sqlite3_bind_text(stmt, 2, item->desc, -1, 0))) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(dbRc, sqlite3_bind_text(stmt, 2, item->desc, -1, 0),
+        DB_INTERFACE__DB_ERROR)
 
     if ((dbRc = sqlite3_step(stmt) != SQLITE_DONE)) {
         return DB_INTERFACE__DB_ERROR;
     }
 
-    if ((dbRc = sqlite3_finalize(stmt))) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(dbRc, sqlite3_finalize(stmt), DB_INTERFACE__DB_ERROR);
 
     return DB_INTERFACE__OK;
 }
@@ -320,9 +314,7 @@ static char getFromWhere(PlannerItem **result, char *where, int *values, int cou
     char rc;
 
     if (stmtGfw == NULL) {
-        if ((rc = getFromWherePrepare(where, values, count))) {
-            return rc;
-        }
+        RETURN_ERR_IF_APP(rc, getFromWherePrepare(where, values, count), rc)
     }
 
     dbRc = sqlite3_step(stmtGfw);
@@ -388,15 +380,13 @@ static char getFromWherePrepare(char *where, int *values, int count)
     strcat(sql, ";");
 
     // https://sqlite.org/c3ref/prepare.html
-    if ((dbRc = sqlite3_prepare_v2(dbFile, sql, -1, &stmtGfw, 0))) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(dbRc, sqlite3_prepare_v2(dbFile, sql, -1, &stmtGfw, 0),
+        DB_INTERFACE__DB_ERROR)
 
     for (int i = 0; i < count; i++) {
         // https://sqlite.org/c3ref/bind_blob.html
-        if ((dbRc = sqlite3_bind_int(stmtGfw, i + 1, values[i]))) {
-            return DB_INTERFACE__DB_ERROR;
-        }
+        RETURN_ERR_IF_APP(dbRc, sqlite3_bind_int(stmtGfw, i + 1, values[i]),
+            DB_INTERFACE__DB_ERROR);
     }
 
     return DB_INTERFACE__OK;
@@ -488,16 +478,10 @@ static char updateDatabase()
     char tf;
     rc = doesDatabaseExist(&tf);
 
-    if (rc) {
-        return rc;
-    }
+    RETURN_ERR_IF_APP(rc, doesDatabaseExist(&tf), rc);
 
     if (!tf) {
-        rc = createDbV1();
-
-        if (rc) {
-            return rc;
-        }
+        RETURN_ERR_IF_APP(rc, createDbV1(), rc);
     }
 
     // When need newer database versions, will want some kind of "get database
@@ -522,16 +506,11 @@ static char doesDatabaseExist(char *result)
     char *sqldum = "SELECT count(*) as count FROM sqlite_master \
     WHERE type='table' AND name=?";
 
-    dbRc = sqlite3_prepare_v2(dbFile, sqldum, -1, &stmt, 0);
-    if (dbRc) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(dbRc, sqlite3_prepare_v2(dbFile, sqldum, -1, &stmt, 0),
+        DB_INTERFACE__DB_ERROR)
 
-    dbRc = sqlite3_bind_text(stmt, 1, "meta", -1, 0);
-
-    if (dbRc) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(dbRc, sqlite3_bind_text(stmt, 1, "meta", -1, 0),
+        DB_INTERFACE__DB_ERROR)
 
     dbRc = sqlite3_step(stmt);
 
@@ -541,11 +520,7 @@ static char doesDatabaseExist(char *result)
 
     *result = sqlite3_column_int(stmt, 0);
 
-    dbRc = sqlite3_finalize(stmt);
-
-    if (dbRc) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(dbRc, sqlite3_finalize(stmt), DB_INTERFACE__DB_ERROR)
 
     return DB_INTERFACE__OK;
 }
@@ -564,10 +539,8 @@ static char createDbV1()
         " value TEXT NOT NULL"
     ");";
 
-    dbRc = sqlite3_exec(dbFile, sqldum, 0, 0, NULL);
-    if (dbRc) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(dbRc, sqlite3_exec(dbFile, sqldum, 0, 0, NULL),
+        DB_INTERFACE__DB_ERROR)
 
     // Put version into meta table.
     sqldum = "INSERT INTO meta("
@@ -580,10 +553,8 @@ static char createDbV1()
         " \"1\""
     ");";
 
-    dbRc = sqlite3_exec(dbFile, sqldum, 0, 0, NULL);
-    if (dbRc) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(dbRc, sqlite3_exec(dbFile, sqldum, 0, 0, NULL),
+        DB_INTERFACE__DB_ERROR)
 
     // Create planner_items table.
     sqldum = "CREATE TABLE items("
@@ -594,10 +565,8 @@ static char createDbV1()
         " exp INTEGER NOT NULL,"
         " done INTEGER NOT NULL"
     ");";
-    dbRc = sqlite3_exec(dbFile, sqldum, 0, 0, NULL);
-    if (dbRc) {
-        return DB_INTERFACE__DB_ERROR;
-    }
+    RETURN_ERR_IF_APP(dbRc, sqlite3_exec(dbFile, sqldum, 0, 0, NULL),
+        DB_INTERFACE__DB_ERROR)
 
     return DB_INTERFACE__OK;
 }
