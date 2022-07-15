@@ -82,6 +82,12 @@ void testSaving()
     // Change the description to check that it's being saved.
     char *newstr = "new description 72713616";
     testObj->desc = (char *) realloc(testObj->desc, strlen(newstr) + 1);
+
+    if (testObj->desc == NULL) {
+        printf("Out of memory during second save.\n");
+        return;
+    }
+
     strcpy(testObj->desc, newstr);
 
     if ((rc = db_interface_save(testObj))) {
