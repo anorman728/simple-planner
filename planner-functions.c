@@ -69,23 +69,6 @@ void freeItem(PlannerItem *obj)
 }
 
 /**
- * Destroy array of PlannerItem objects *and* the array itself.
- *
- * @param   **PlannerItem   Objects to destroy.
- * @param   amt             Count of objects.
- */
-void freeAll(PlannerItem **items)
-{
-    int i = 0;
-    while (items[i] != NULL) {
-        freeItem(items[i++]);
-    }
-
-    free(items);
-    items = NULL; // Always set freed ponters to null.
-}
-
-/**
  * Build error string from return code, for printing.
  *
  * The resulting string is on heap memory and must be freed!
