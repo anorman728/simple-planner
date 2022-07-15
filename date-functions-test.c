@@ -86,7 +86,13 @@ void testToString()
 
     Date testObj = buildDate(3, 5, 21); // June 22, 2004.
 
-    char *result = toString(testObj);
+    char *result;
+
+    int rc = toString(&result, testObj);
+
+    if (rc) {
+        printf("ERROR: Received error: %d\n", rc);
+    }
 
     if (strcmp(result, "2004-06-22") != 0) {
         printf("FAILURE: Found %s\n.", result);

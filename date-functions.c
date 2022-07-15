@@ -81,18 +81,24 @@ int toInt(Date dateObj)
 }
 
 /**
- * Convert Date object to a string in form Y-m-d.  RETURNS OBJECT ON HEAP!
+ * Convert Date object to a string in form Y-m-d.  Passed back by argument.
+ * RETURNS OBJECT ON HEAP!
  *
+ * @param   ret
  * @param   dateObj
  */
-char *toString(Date dateObj)
+int toString(char **ret, Date dateObj)
 {
     // Don't forget the null terminator!
-    char *ret = malloc(11 * (sizeof ret));
+    *ret = malloc(11 * (sizeof ret));
 
-    sprintf(ret, "%04d-%02d-%02d", (dateObj.year + 2001), dateObj.month + 1, dateObj.day + 1);
+    if (*ret == NULL) {
+        return DATE_FUNCTIONS__OUT_OF_MEMORY;
+    }
 
-    return ret;
+    sprintf(*ret, "%04d-%02d-%02d", (dateObj.year + 2001), dateObj.month + 1, dateObj.day + 1);
+
+    return DATE_FUNCTIONS__OK;
 }
 
 /**
