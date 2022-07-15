@@ -10,6 +10,7 @@
 /** var dbFile Pointer to sqlite3 database object. */
 static sqlite3 *dbFile;
 
+static char prepStat(char *str, sqlite3_stmt **stmtptr);
 static char saveNew(PlannerItem *item);
 static char saveExisting(PlannerItem *item);
 static char getFromWhere(PlannerItem **result, char *where, int *values, int count);
@@ -30,11 +31,11 @@ int dbRc = 0;
 /** This is the error code from Planner functions. */
 char pfRc = 0;
 
+// Internal-use-only macros.
 #define RETURN_ERR_IF_APP(CODE, EXPR, RETVAL) \
     if ((CODE = (EXPR))) {\
         return (RETVAL); \
     }
-
 
 /**
  * Open the database file.  Create one if it doesn't exist.  Returns RC from
@@ -83,6 +84,29 @@ char db_interface_save(PlannerItem *item)
     } else {
         RETURN_ERR_IF_APP(rc, saveExisting(item), rc)
     }
+
+    return DB_INTERFACE__OK;
+}
+
+/**
+ * Update description of a planner record by id.
+ *
+ * @param   id
+ * @param   newdesc
+ */
+char db_interface_update_desc(long id, char *newdesc)
+{
+    char *updateRow = "UPDATE items SET desc = ? WHERE id = ?;";
+
+    sqlite3_stmt *stmt;
+
+    RETURN_ERR_IF_APP(
+        dbRc,
+        prepStat(updateRow, (&stmt)),
+        DB_INTERFACE__DB_ERROR
+    )
+
+    // TODO: Finish this.
 
     return DB_INTERFACE__OK;
 }
@@ -191,6 +215,17 @@ char db_interface_range(PlannerItem **result, Date lower, Date upper)
 // Static functions below this line.
 
 /**
+ * Helper function for dealing with preparing statements.
+ *
+ * @param   string
+ * @param   stmtptr
+ */
+static char prepStat(char *str, sqlite3_stmt **stmtptr)
+{
+    return sqlite3_prepare_v2(dbFile, str, -1, stmtptr, 0);
+}
+
+/**
  * Save a new record to the database, and save the id.  Returns rc.
  *
  * @param   item    A PlannerItem pointer.
@@ -202,11 +237,7 @@ static char saveNew(PlannerItem *item)
 
     sqlite3_stmt *stmt;
 
-    RETURN_ERR_IF_APP(
-        dbRc,
-        sqlite3_prepare_v2(dbFile, insertRow, -1, &stmt, 0),
-        DB_INTERFACE__DB_ERROR
-    )
+    RETURN_ERR_IF_APP(dbRc, prepStat(insertRow, &stmt), DB_INTERFACE__DB_ERROR)
 
     int bindints[8];
     bindints[0] = 1;
@@ -255,8 +286,7 @@ static char saveExisting(PlannerItem *item)
 
     sqlite3_stmt *stmt;
 
-    RETURN_ERR_IF_APP(dbRc, sqlite3_prepare_v2(dbFile, updateRow, -1, &stmt, 0),
-        DB_INTERFACE__DB_ERROR)
+    RETURN_ERR_IF_APP(dbRc, prepStat(updateRow, &stmt), DB_INTERFACE__DB_ERROR)
 
     int bindints[10];
     bindints[0] = 1;
@@ -379,9 +409,7 @@ static char getFromWherePrepare(char *where, int *values, int count)
     strcat(sql, where);
     strcat(sql, ";");
 
-    // https://sqlite.org/c3ref/prepare.html
-    RETURN_ERR_IF_APP(dbRc, sqlite3_prepare_v2(dbFile, sql, -1, &stmtGfw, 0),
-        DB_INTERFACE__DB_ERROR)
+    RETURN_ERR_IF_APP(dbRc, prepStat(sql, &stmtGfw), DB_INTERFACE__DB_ERROR)
 
     for (int i = 0; i < count; i++) {
         // https://sqlite.org/c3ref/bind_blob.html
@@ -506,8 +534,7 @@ static char doesDatabaseExist(char *result)
     char *sqldum = "SELECT count(*) as count FROM sqlite_master \
     WHERE type='table' AND name=?";
 
-    RETURN_ERR_IF_APP(dbRc, sqlite3_prepare_v2(dbFile, sqldum, -1, &stmt, 0),
-        DB_INTERFACE__DB_ERROR)
+    RETURN_ERR_IF_APP(dbRc, prepStat(sqldum, &stmt), DB_INTERFACE__DB_ERROR)
 
     RETURN_ERR_IF_APP(dbRc, sqlite3_bind_text(stmt, 1, "meta", -1, 0),
         DB_INTERFACE__DB_ERROR)

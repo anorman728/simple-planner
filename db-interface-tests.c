@@ -9,6 +9,8 @@
 void testBuildError();
 void testSaving();
 void testGettingRecordsFromRange();
+void testUpdatingDesc();
+
 void deleteFileIfExists(char *filename);
 void printError(char *desc, char rc);
 
@@ -19,8 +21,65 @@ int main()
     testBuildError();
     testSaving();
     testGettingRecordsFromRange();
+    testUpdatingDesc();
 
     deleteFileIfExists(testDb);
+}
+
+void testBuildError()
+{
+    printf("...Starting testBuildError.\n");
+
+    deleteFileIfExists(testDb);
+
+    char rc;
+
+    rc = db_interface_initialize(testDb);
+
+    if (rc) {
+        printError("Could not initialize DB.", rc);
+        return;
+    }
+
+    char *str;
+
+    // Test with db-related error.
+    _db_interface_create_db_err();
+    rc = db_interface_build_err(&str, DB_INTERFACE__DB_ERROR);
+
+    if (rc) {
+        printError("Out of memory on first call to db_interface_build_err", rc);
+        return;
+    }
+
+    if (strcmp(str, "Database error: 1. near \"definitely\": syntax error") != 0) {
+        printf("FAILURE: String is not set as expected for db-related error.\n");
+    }
+    free(str);
+    str = NULL;
+
+    // Test with interface error.
+    rc = db_interface_build_err(&str, DB_INTERFACE__OK);
+
+    if (rc) {
+        printError("Out of memory on second call to db_interface_build_err.", rc);
+        return;
+    }
+
+    if (strcmp(str, "No error for db interface.") != 0) {
+        printf("FAILURE: String is not set as expected for interface error.\n");
+    }
+
+    free(str);
+    str = NULL;
+
+    rc = db_interface_finalize();
+
+    if (rc) {
+        printError("Could not finalize DB.", rc);
+    }
+
+    printf("...Completed testBuildError.\n");
 }
 
 void testSaving()
@@ -202,7 +261,8 @@ void testGettingRecordsFromRange()
         buildDate(22,6,10)
     )) == DB_INTERFACE__CONT) {
         if (strcmp(result->desc, inRes) != 0) {
-            char *date = toString(result->date);
+            char *date;
+            toString(&date, result->date);
             printf("FAILURE: Found invalid desc in results! In date %s.\n", date);
             free(date);
         }
@@ -220,60 +280,8 @@ void testGettingRecordsFromRange()
     printf("...Completed testGettingRecordsFromRange.\n");
 }
 
-void testBuildError()
+void testUpdatingDesc()
 {
-    printf("...Starting testBuildError.\n");
-
-    deleteFileIfExists(testDb);
-
-    char rc;
-
-    rc = db_interface_initialize(testDb);
-
-    if (rc) {
-        printError("Could not initialize DB.", rc);
-        return;
-    }
-
-    char *str;
-
-    // Test with db-related error.
-    _db_interface_create_db_err();
-    rc = db_interface_build_err(&str, DB_INTERFACE__DB_ERROR);
-
-    if (rc) {
-        printError("Out of memory on first call to db_interface_build_err", rc);
-        return;
-    }
-
-    if (strcmp(str, "Database error: 1. near \"definitely\": syntax error") != 0) {
-        printf("FAILURE: String is not set as expected for db-related error.\n");
-    }
-    free(str);
-    str = NULL;
-
-    // Test with interface error.
-    rc = db_interface_build_err(&str, DB_INTERFACE__OK);
-
-    if (rc) {
-        printError("Out of memory on second call to db_interface_build_err.", rc);
-        return;
-    }
-
-    if (strcmp(str, "No error for db interface.") != 0) {
-        printf("FAILURE: String is not set as expected for interface error.\n");
-    }
-
-    free(str);
-    str = NULL;
-
-    rc = db_interface_finalize();
-
-    if (rc) {
-        printError("Could not finalize DB.", rc);
-    }
-
-    printf("...Completed testBuildError.\n");
 }
 
 
