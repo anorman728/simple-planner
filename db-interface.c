@@ -102,11 +102,20 @@ char db_interface_update_desc(long id, char *newdesc)
 
     RETURN_ERR_IF_APP(
         dbRc,
-        prepStat(updateRow, (&stmt)),
+        prepStat(updateRow, &stmt),
         DB_INTERFACE__DB_ERROR
     )
 
-    // TODO: Finish this.
+    RETURN_ERR_IF_APP(dbRc, sqlite3_bind_text(stmt, 1, newdesc, -1, 0),
+        DB_INTERFACE__DB_ERROR)
+    RETURN_ERR_IF_APP(dbRc, sqlite3_bind_int(stmt, 2, id),
+        DB_INTERFACE__DB_ERROR)
+
+    if ((dbRc = sqlite3_step(stmt)) != SQLITE_DONE) {
+        return DB_INTERFACE__DB_ERROR;
+    }
+
+    RETURN_ERR_IF_APP(dbRc, sqlite3_finalize(stmt), DB_INTERFACE__DB_ERROR)
 
     return DB_INTERFACE__OK;
 }

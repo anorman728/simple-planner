@@ -282,6 +282,58 @@ void testGettingRecordsFromRange()
 
 void testUpdatingDesc()
 {
+    printf("...Starting testUpdatingDesc.\n");
+
+    char rc;
+
+    deleteFileIfExists(testDb);
+    if ((rc = db_interface_initialize(testDb))) {
+        printf("ERROR: Could not initializedb.  %d\n", rc);
+    }
+
+    // Saving item to be modified.
+    PlannerItem *testObj;
+
+    buildItem(
+        &testObj,
+        0,
+        buildDate(22,6,1),
+        "old description",
+        rep_N, // Doens't matter.
+        buildDate(0, 1, 1), // Doesn't matter.
+        -1 // Doesn't matter
+    );
+    if ((rc = db_interface_save(testObj))) {
+        printError("saving", rc);
+        return;
+    }
+
+    long id = testObj->id;
+
+    freeItem(testObj);
+
+    // Modifying object.
+    char *newdesc = "new description purple hippopatamus";
+    rc = db_interface_update_desc(id, newdesc);
+
+    if (rc) {
+        printf("ERROR: %d\n", rc);
+    }
+
+    // Getting object to test.
+    PlannerItem *retrieved;
+
+    if ((rc = db_interface_get(&retrieved, id))) {
+        printError("retrieving saved item", rc);
+    }
+
+    if (strcmp(retrieved->desc, newdesc) != 0) {
+        printf("FAILURE: description was not saved as expected.\n");
+    }
+
+    freeItem(retrieved);
+
+    printf("...Completed testUpdatingDesc.\n");
 }
 
 
