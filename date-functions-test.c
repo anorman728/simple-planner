@@ -92,6 +92,7 @@ void testToString()
 
     if (rc) {
         printf("ERROR: Received error: %d\n", rc);
+        return;
     }
 
     if (strcmp(result, "2004-06-22") != 0) {
