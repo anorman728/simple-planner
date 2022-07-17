@@ -11,6 +11,7 @@ void testSaving();
 void testGettingRecordsFromRange();
 void testGettingNonexistentRecord();
 void testUpdatingDesc();
+void testDelete();
 
 void deleteFileIfExists(char *filename);
 void printError(char *desc, char rc);
@@ -24,6 +25,7 @@ int main()
     testGettingRecordsFromRange();
     testGettingNonexistentRecord();
     testUpdatingDesc();
+    testDelete();
 
     deleteFileIfExists(testDb);
 }
@@ -363,7 +365,8 @@ void testUpdatingDesc()
 
     deleteFileIfExists(testDb);
     if ((rc = db_interface_initialize(testDb))) {
-        printf("ERROR: Could not initializedb.  %d\n", rc);
+        printf("ERROR: Could not initialize db.  %d\n", rc);
+        return;
     }
 
     // Saving item to be modified.
@@ -374,7 +377,7 @@ void testUpdatingDesc()
         0,
         buildDate(22,6,1),
         "old description",
-        rep_N, // Doens't matter.
+        rep_N, // Doesn't matter.
         buildDate(0, 1, 1), // Doesn't matter.
         -1 // Doesn't matter
     );
@@ -408,7 +411,73 @@ void testUpdatingDesc()
 
     freeItem(retrieved);
 
+    if ((rc = db_interface_finalize())) {
+        printError("during finalization", rc);
+        return;
+    }
+
     printf("...Completed testUpdatingDesc.\n");
+}
+
+void testDelete()
+{
+    printf("...Starting testDelete.\n");
+
+    char rc;
+
+    deleteFileIfExists(testDb);
+    if ((rc = db_interface_initialize(testDb))) {
+        printf("ERROR: Could not initialize db.  %d\n", rc);
+    }
+
+    // Saving item to be deleted.
+    PlannerItem *testObj;
+
+    buildItem(
+        &testObj,
+        0,
+        buildDate(22,6,1),
+        "to be deleted",
+        rep_N, // Doesn't matter.
+        buildDate(0, 1, 1), // Doesn't matter
+        -1 // Doesn't matter.
+    );
+
+    printf("...Saving object to be deleted.\n");
+
+    if ((rc = db_interface_save(testObj))) {
+        printError("saving", rc);
+    }
+
+    long id = testObj->id;
+    freeItem(testObj);
+
+    // Deleting object.
+    printf("...Deleting object.\n");
+    rc = db_interface_delete(id);
+
+    if (rc) {
+        printError("when deleting", rc);
+    }
+
+    PlannerItem *returnObj;
+
+    if ((rc = db_interface_get(&returnObj, id))) {
+        printError("when getting nonexisting object", rc);
+        return;
+    }
+
+    if (returnObj != NULL) {
+        printf("FAILURE: Nonnull object returned get db_interface_get.\n");
+        return;
+    }
+
+    if ((rc = db_interface_finalize())) {
+        printError("during finalization", rc);
+        return;
+    }
+
+    printf("...Completed testDelete.\n");
 }
 
 

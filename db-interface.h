@@ -23,6 +23,8 @@ char db_interface_save(PlannerItem *item);
 
 char db_interface_update_desc(long id, char *newdesc);
 
+char db_interface_delete(long id);
+
 int db_interface_get_db_err();
 
 char db_interface_build_err(char **str, int code);
