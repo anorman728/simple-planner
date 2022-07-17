@@ -190,14 +190,15 @@ char db_interface_get(PlannerItem **result, int id)
         return DB_INTERFACE__DB_ERROR;
     }
 
-    // If it says "cont", that's still a problem in this case.
-    // TODO: But I still need to handle that differently, because right now
-    // it's pretty opaque and will be difficult to debug.
-    RETURN_ERR_IF_APP(
-        rc,
-        getFromWhere(result, "", vals, 0),
-        DB_INTERFACE__DB_ERROR
-    )
+    if (*result != NULL) {
+        // If it's null, then nothing was found, so don't need to complete the
+        // statement.
+        RETURN_ERR_IF_APP(
+            rc,
+            getFromWhere(NULL, "", vals, 0),
+            DB_INTERFACE__DB_ERROR
+        )
+    }
 
     return DB_INTERFACE__OK;
 }
@@ -343,10 +344,15 @@ sqlite3_stmt *stmtGfw = NULL;
  *
  * Helper method for db_interface_get and db_interface_range.
  *
- * @param   result  Result passed back by argument.
- * @param   where   WHERE clause, including ?s.
- * @param   values  Array of integers to bind.
- * @param   count   Number of integers to bind (i.e., count of "values").
+ * @param   result
+ *  Result passed back by argument.  If this is null (not what it points to),
+ *  then this was intentionally passed just to close the argument.
+ * @param   where
+ *  WHERE clause, including ?s.
+ * @param   values
+ *  Array of integers to bind.
+ * @param   count
+ *  Number of integers to bind (i.e., count of "values").
  */
 static char getFromWhere(PlannerItem **result, char *where, int *values, int count)
 {
@@ -361,7 +367,13 @@ static char getFromWhere(PlannerItem **result, char *where, int *values, int cou
     if (dbRc == SQLITE_DONE) {
         // If SQLITE_DONE is returned, that means that it's *already* returned
         // the final row.
-        result = NULL;
+        // Note that if SQLITE_DONE is returned on first row, that means that
+        // there were no records found, so the *first* result is null.
+        if (result != NULL) {
+            // If result *itself* is null, then that was intentionally passed
+            // just to close the statement.
+            *result = NULL;
+        }
         dbRc = sqlite3_finalize(stmtGfw);
         stmtGfw = NULL;
 
@@ -374,6 +386,11 @@ static char getFromWhere(PlannerItem **result, char *where, int *values, int cou
 
     if (dbRc != SQLITE_ROW) {
         return DB_INTERFACE__DB_ERROR;
+    }
+
+    if (result == NULL) {
+        // This means a null pointer was passed when it wasn't ready to close.
+        return DB_INTERFACE__INTERNAL;
     }
 
     pfRc = buildItem(
@@ -486,6 +503,9 @@ static char db_interface_build_err__ifce(char **str, int code)
             break;
         case DB_INTERFACE__CONT:
             strdum = "No error: Continue.";
+            break;
+        case DB_INTERFACE__INTERNAL:
+            strdum = "Coding problem inside this class.";
             break;
         default:
             strdum = "Unknown error for db interface.";

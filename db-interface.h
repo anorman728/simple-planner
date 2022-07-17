@@ -10,6 +10,7 @@
 #define DB_INTERFACE__OUT_OF_MEMORY 2
 #define DB_INTERFACE__CONT          3
 #define DB_INTERFACE__PLANNER       4
+#define DB_INTERFACE__INTERNAL      5
 
 
 // Functions.

@@ -9,6 +9,7 @@
 void testBuildError();
 void testSaving();
 void testGettingRecordsFromRange();
+void testGettingNonexistentRecord();
 void testUpdatingDesc();
 
 void deleteFileIfExists(char *filename);
@@ -21,6 +22,7 @@ int main()
     testBuildError();
     testSaving();
     testGettingRecordsFromRange();
+    testGettingNonexistentRecord();
     testUpdatingDesc();
 
     deleteFileIfExists(testDb);
@@ -278,6 +280,79 @@ void testGettingRecordsFromRange()
     }
 
     printf("...Completed testGettingRecordsFromRange.\n");
+}
+
+void testGettingNonexistentRecord()
+{
+    printf("...Starting testGettingNonexistentRecord.\n");
+
+    deleteFileIfExists(testDb);
+
+    char rc;
+
+    if ((rc = db_interface_initialize(testDb))) {
+        printError("during initialization", rc);
+        return;
+    }
+
+    PlannerItem *testObj;
+
+    buildItem(
+        &testObj,
+        0,
+        buildDate(22,6,5),
+        "some description",
+        rep_N,
+        buildDate(0, 1, 1),
+        0
+    );
+
+    if ((rc = db_interface_save(testObj))) {
+        printError("during save", rc);
+        return;
+    }
+
+    long returned_id = testObj->id;
+
+    printf("...Inserted object resulting in id #%ld\n", returned_id);
+
+    freeItem(testObj);
+    testObj = NULL;
+
+    PlannerItem *RetItm;
+
+    printf("...Retrieving existing item.\n");
+
+    if ((rc = db_interface_get(&RetItm, returned_id))) {
+        printError("on getting existing item", rc);
+        return;
+    }
+
+    if (RetItm == NULL) {
+        printf("FAILURE:  Existing item is returned as null.\n");
+        return;
+    }
+
+    freeItem(RetItm);
+
+    printf("...Retrieving nonexisting item.\n");
+
+    if ((rc = db_interface_get(&RetItm, returned_id + 1))) {
+        printError("on getting nonexisting item", rc);
+        return;
+    }
+
+    if (RetItm != NULL) {
+        printf("FAILURE: Retrieved item is not null.\n");
+        return;
+    }
+
+    if ((rc = db_interface_finalize())) {
+        printError("during finalization", rc);
+        return;
+    }
+
+    printf("...Completed testGettingNonexistentRecord.\n");
 }
 
 void testUpdatingDesc()
