@@ -11,6 +11,7 @@
 static sqlite3 *dbFile;
 
 static char prepStat(char *str, sqlite3_stmt **stmtptr);
+static int execStr(char *strInp);
 static char saveNew(PlannerItem *item);
 static char saveExisting(PlannerItem *item);
 static char getFromWhere(PlannerItem **result, char *where, int *values, int count);
@@ -191,7 +192,7 @@ void _db_interface_create_db_err()
 {
     char *sqldum = "definitely not valid sql code";
 
-    dbRc = sqlite3_exec(dbFile, sqldum, 0, 0, NULL);
+    dbRc = execStr(sqldum);
 }
 
 /**
@@ -248,12 +249,24 @@ char db_interface_range(PlannerItem **result, Date lower, Date upper)
 /**
  * Helper function for dealing with preparing statements.
  *
- * @param   string
+ * @param   str
  * @param   stmtptr
  */
 static char prepStat(char *str, sqlite3_stmt **stmtptr)
 {
     return sqlite3_prepare_v2(dbFile, str, -1, stmtptr, 0);
+}
+
+/**
+ * Helper function for quickly executing statements (that don't need
+ * parameters).
+ *
+ * @param   strInp
+ * @return  int
+ */
+static int execStr(char *strInp)
+{
+    return sqlite3_exec(dbFile, strInp, 0, 0, NULL);
 }
 
 /**
@@ -616,8 +629,7 @@ static char createDbV1()
         " value TEXT NOT NULL"
     ");";
 
-    RETURN_ERR_IF_APP(dbRc, sqlite3_exec(dbFile, sqldum, 0, 0, NULL),
-        DB_INTERFACE__DB_ERROR)
+    RETURN_ERR_IF_APP(dbRc, execStr(sqldum), DB_INTERFACE__DB_ERROR)
 
     // Put version into meta table.
     sqldum = "INSERT INTO meta("
@@ -630,8 +642,7 @@ static char createDbV1()
         " \"1\""
     ");";
 
-    RETURN_ERR_IF_APP(dbRc, sqlite3_exec(dbFile, sqldum, 0, 0, NULL),
-        DB_INTERFACE__DB_ERROR)
+    RETURN_ERR_IF_APP(dbRc, execStr(sqldum), DB_INTERFACE__DB_ERROR)
 
     // Create planner_items table.
     sqldum = "CREATE TABLE items("
@@ -642,8 +653,7 @@ static char createDbV1()
         " exp INTEGER NOT NULL,"
         " done INTEGER NOT NULL"
     ");";
-    RETURN_ERR_IF_APP(dbRc, sqlite3_exec(dbFile, sqldum, 0, 0, NULL),
-        DB_INTERFACE__DB_ERROR)
+    RETURN_ERR_IF_APP(dbRc, execStr(sqldum), DB_INTERFACE__DB_ERROR)
 
     return DB_INTERFACE__OK;
 }
