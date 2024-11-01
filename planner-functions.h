@@ -13,15 +13,9 @@
 #define PLANNER_STATUS__OK              0
 #define PLANNER_STATUS__OUT_OF_MEMORY   1
 
+#define REP_NONE 0
+#define REP_YEARLY 1
 
-typedef enum planner_repenum
-{
-    rep_D, // daily
-    rep_W, // weekly
-    rep_M, // monthly
-    rep_Y, // yearly
-    rep_N  // none
-} Repetition;
 
 typedef struct planner_itemstruct
 {
@@ -37,8 +31,8 @@ typedef struct planner_itemstruct
     /** @var Day of expiration.  Jan 1, 2000 if none. */
     Date exp;
 
-    /** @var Type of repetition. */
-    Repetition rep;
+    /** @var Type of repetition, from constants. */
+    char rep;
 
     /** @var 0 if needs to be done, 1 if done, -1 if n/a. */
     short done;
@@ -50,7 +44,7 @@ int buildItem(
     long id,
     Date dateObj,
     char *desc,
-    Repetition rep,
+    char rep,
     Date exp,
     char done
 );

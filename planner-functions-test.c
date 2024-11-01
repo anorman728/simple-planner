@@ -6,8 +6,6 @@
 #include "planner-functions.h"
 #include "date-functions.h"
 
-// Very primitive testing!  No framework atm.
-
 static void buildErrTest();
 static void buildItemTest();
 
@@ -70,7 +68,7 @@ static void buildItemTest()
     if (itmDum->exp.month != 5) {
         printf("FAILURE: exp property is wrong.\n");
     }
-    if (itmDum->rep != rep_W) {
+    if (itmDum->rep != REP_YEARLY) {
         printf("FAILURE: rep property is wrong.\n");
     }
     if (itmDum->done != -1) {
@@ -98,7 +96,7 @@ static PlannerItem *buildItemDummyFunction()
 
     PlannerItem *itm;
 
-    int rc = buildItem(&itm, 0, dateObj, "Planner description 436", rep_W, exp, -1);
+    int rc = buildItem(&itm, 0, dateObj, "Planner description 436", REP_YEARLY, exp, -1);
 
     if (rc != PLANNER_STATUS__OK) {
         printf("...buildItemDummyFunction: Received error: %d\n.", rc);

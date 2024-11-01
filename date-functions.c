@@ -41,9 +41,6 @@ static struct tm dateToTm(Date dateObj);
  */
 Date buildDate(int yr, int mn, int dy)
 {
-    // TODO: Write test.  It's too simplistic right now for me to be
-    // concerned about it.
-
     Date returnVal = {};
     returnVal.year = yr;
     returnVal.month = mn;

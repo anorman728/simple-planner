@@ -15,7 +15,7 @@
  * @param   id      Id from db.  Zero if new object.
  * @param   dateObj Date object.
  * @param   desc    Description string.
- * @param   rep     Repetition, from enum.
+ * @param   rep     Repetition, from header file's constants.
  * @param   exp     Expiry, year zero if none.
  * @param   done    "To-do" status.  (Described by struct doc.)
  * @return  int
@@ -25,7 +25,7 @@ int buildItem(
     long id,
     Date dateObj,
     char *desc,
-    Repetition rep,
+    char rep,
     Date exp,
     char done
 ) {
