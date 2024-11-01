@@ -1,6 +1,6 @@
-/build
-/release
-/debug
-*.run
+release/
+debug/
+tests/
+*.o
 /sandbox.c
 /compilesandbox.sh
