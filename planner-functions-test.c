@@ -65,13 +65,10 @@ static void buildItemTest()
     if (strcmp(itmDum->desc, "Planner description 436") != 0) {
         printf("FAILURE: desc property is wrong.\n");
     }
-    if (itmDum->exp.month != 5) {
-        printf("FAILURE: exp property is wrong.\n");
-    }
     if (itmDum->rep != REP_YEARLY) {
         printf("FAILURE: rep property is wrong.\n");
     }
-    if (itmDum->done != -1) {
+    if (itmDum->todo != 1) {
         printf("FAILURE: done property is wrong.\n");
     }
 
@@ -92,11 +89,10 @@ static void buildItemTest()
 static PlannerItem *buildItemDummyFunction()
 {
     Date dateObj = buildDate(103, 6, 1);
-    Date exp = buildDate(103, 5, 1);
 
     PlannerItem *itm;
 
-    int rc = buildItem(&itm, 0, dateObj, "Planner description 436", REP_YEARLY, exp, -1);
+    int rc = buildItem(&itm, 0, dateObj, "Planner description 436", REP_YEARLY, 1);
 
     if (rc != PLANNER_STATUS__OK) {
         printf("...buildItemDummyFunction: Received error: %d\n.", rc);

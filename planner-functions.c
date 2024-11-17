@@ -16,8 +16,7 @@
  * @param   dateObj Date object.
  * @param   desc    Description string.
  * @param   rep     Repetition, from header file's constants.
- * @param   exp     Expiry, year zero if none.
- * @param   done    "To-do" status.  (Described by struct doc.)
+ * @param   todo    Is an item with a todo
  * @return  int
  */
 int buildItem(
@@ -26,8 +25,7 @@ int buildItem(
     Date dateObj,
     char *desc,
     char rep,
-    Date exp,
-    char done
+    char todo
 ) {
     char *descHp = malloc(strlen(desc) + 1);
 
@@ -47,9 +45,8 @@ int buildItem(
     itmDum->id     = id;
     itmDum->date   = dateObj;
     itmDum->desc   = descHp;
-    itmDum->exp    = exp;
     itmDum->rep    = rep;
-    itmDum->done   = done;
+    itmDum->todo   = todo;
 
     *item = itmDum;
 

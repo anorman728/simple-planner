@@ -108,8 +108,7 @@ void testSaving()
         0,
         buildDate(22, 6, 5),
         desc,
-        rep_N,
-        buildDate(0, 1, 1),
+        REP_NONE,
         0
     );
 
@@ -206,9 +205,8 @@ void testGettingRecordsFromRange()
         0,
         buildDate(22, 6, 1),
         notInRes,
-        rep_N, // Doesn't matter.
-        buildDate(0, 1, 1), // Doesn't matter.
-        -1 // Doesn't matter
+        REP_NONE, // Doesn't matter.
+        0 // Doesn't matter
     );
     if ((rc = db_interface_save(testObj))) {
         printError("first save", rc);
@@ -220,9 +218,8 @@ void testGettingRecordsFromRange()
         0,
         buildDate(22, 6, 5),
         inRes,
-        rep_N, // Doesn't matter.
-        buildDate(0, 1, 1), // Doesn't matter.
-        -1
+        REP_NONE, // Doesn't matter.
+        0
     );
     if ((rc = db_interface_save(testObj))) {
         printError("second save", rc);
@@ -234,9 +231,8 @@ void testGettingRecordsFromRange()
         0,
         buildDate(22, 6, 10),
         inRes,
-        rep_N, // Doesn't matter.
-        buildDate(0, 1, 1), // Doesn't matter.
-        -1
+        REP_NONE, // Doesn't matter.
+        0
     );
     if ((rc = db_interface_save(testObj))) {
         printError("third save", rc);
@@ -248,9 +244,8 @@ void testGettingRecordsFromRange()
         0,
         buildDate(22, 6, 15),
         notInRes,
-        rep_N, // Doesn't matter.
-        buildDate(0, 1, 1), // Doesn't matter.
-        -1
+        REP_NONE,
+        0
     );
     if ((rc = db_interface_save(testObj))) {
         printError("fourth save", rc);
@@ -304,8 +299,7 @@ void testGettingNonexistentRecord()
         0,
         buildDate(22,6,5),
         "some description",
-        rep_N,
-        buildDate(0, 1, 1),
+        REP_NONE,
         0
     );
 
@@ -377,9 +371,8 @@ void testUpdatingDesc()
         0,
         buildDate(22,6,1),
         "old description",
-        rep_N, // Doesn't matter.
-        buildDate(0, 1, 1), // Doesn't matter.
-        -1 // Doesn't matter
+        REP_NONE,
+        0
     );
     if ((rc = db_interface_save(testObj))) {
         printError("saving", rc);
@@ -438,9 +431,8 @@ void testDelete()
         0,
         buildDate(22,6,1),
         "to be deleted",
-        rep_N, // Doesn't matter.
-        buildDate(0, 1, 1), // Doesn't matter
-        -1 // Doesn't matter.
+        REP_NONE,
+        0
     );
 
     printf("...Saving object to be deleted.\n");

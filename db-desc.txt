@@ -7,31 +7,11 @@ meta -- Contains metadata, such as version number, etc.
 
 items -- Contains all planner items.
     id (integer primary key autoincrement)
-    desc (text) -- The description.
-    todo_applicable (integer not null) -- 0 is there is no todo associated with the item.  1 if there is.
+    date (int)            -- The date, as integer (convertible by
+                             date-functions).
+    desc (text)           -- The description.
+    rep (int not null)    -- Repetition type, defined by planner-functions.h
+    todo (int not null)   -- 0 if there is no todo associated with the item.  1
+                             if there is.
 
-no_repetitions -- Data for all items that ahve no repetitions.
-    id (integer primary key autoincrement)
-    date (integer not null) -- Date (from toInt in date-functions) that the item takes place.
-
-yearly_repetitions -- Data for all items that repeat annually.
-    id (integer primary key autoincrement)
-    startdate (integer not null)   -- First date (from toInt in date-functions) in which the item takes place.
-    exp (integer not null)         -- Last date in which the item takes place, if applicable.  Set to zero if no expiration.
-
-monthly_repetitions -- Data for all items that repeat monthly.
-    id (integer primary key autoincrement)
-    startdate (integer not null)    -- First date (from toInt in date-functions) in which the item takes place.
-    exp (integer not null)          -- Last date in which the item takes place, if applicable.  Set to zero if no expiration.
-    day_of_month (integer not null) -- Day of month (starting at zero!) that repeats.
-
-weekly_repetitions -- Data for all items that repeat weekly.
-    id (integer primary key autoincrement)
-    startdate (integer not null)       -- First date (from toInt in date-functions) in which the item takes place.
-    exp (integer not null)             -- Last date in which the item takes place, if applicable.  Set to zero if no expiration.
-    day_of_week (integer not null)     -- Day of week (starting at zero!) that repeats.
-
-todo_statii -- Which "todo" items are done, by date.  (It not present on specified date, either not done or not applicable.)
-    id (integer primary key autoincrement)
-    items_id (integer not null)
-    date (integer not null) -- Date (from toInt in date-functions) that the item is done.
+TODO: done_items -- Contains all days on which an item should be marked as done/completed.

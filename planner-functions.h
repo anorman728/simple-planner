@@ -28,14 +28,11 @@ typedef struct planner_itemstruct
     /** @var Description. */
     char *desc;
 
-    /** @var Day of expiration.  Jan 1, 2000 if none. */
-    Date exp;
-
     /** @var Type of repetition, from constants. */
     char rep;
 
-    /** @var 0 if needs to be done, 1 if done, -1 if n/a. */
-    short done;
+    /** @var True if is a todo item. */
+    char todo;
 
 } PlannerItem;
 
@@ -45,8 +42,7 @@ int buildItem(
     Date dateObj,
     char *desc,
     char rep,
-    Date exp,
-    char done
+    char todo
 );
 
 void freeItem(PlannerItem *item);
