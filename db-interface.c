@@ -15,7 +15,7 @@ static int execStr(char *strInp);
 static char saveNew(PlannerItem *item);
 static char saveExisting(PlannerItem *item);
 static char getFromWhere(PlannerItem **result, char *where, int *values, int count);
-static char getFromWherePrepare(char *where, int *values, int count);
+static char getFromWherePrepare(sqlite3_stmt **stmtGfw, char *where, int *values, int count);
 
 
 static char db_interface_build_err__db(char **str);
@@ -358,10 +358,6 @@ static char saveExisting(PlannerItem *item)
     return DB_INTERFACE__OK;
 }
 
-/** Module-scope object for use specifically with getFromWhere. */
-sqlite3_stmt *stmtGfw = NULL;
-// TODO: change this to static var from within getFromWhere.
-
 /**
  * Iterate over PlannerItem pointers from where clause and the integers to be
  * bound to it.  (This assumes only integers will be bound.)
@@ -386,8 +382,10 @@ static char getFromWhere(PlannerItem **result, char *where, int *values, int cou
 {
     char rc;
 
+    static sqlite3_stmt *stmtGfw = NULL;
+
     if (stmtGfw == NULL) {
-        RETURN_ERR_IF_APP(rc, getFromWherePrepare(where, values, count), rc)
+        RETURN_ERR_IF_APP(rc, getFromWherePrepare(&stmtGfw, where, values, count), rc)
     }
 
     dbRc = sqlite3_step(stmtGfw);
@@ -444,11 +442,12 @@ static char getFromWhere(PlannerItem **result, char *where, int *values, int cou
 /**
  * Prepare statement for getFromWhere.  Helper function for getFromWhere.
  *
+ * @param   stmtGfw The SQLite statement object.
  * @param   where   Directly passed by getFromWhere.
  * @param   values  Directly passed by getFromWhere.
  * @param   count   Directly passed by getFromWhere.
  */
-static char getFromWherePrepare(char *where, int *values, int count)
+static char getFromWherePrepare(sqlite3_stmt **stmtGfw, char *where, int *values, int count)
 {
     // Build SQL.
 
@@ -462,11 +461,11 @@ static char getFromWherePrepare(char *where, int *values, int count)
     strcat(sql, where);
     strcat(sql, ";");
 
-    RETURN_ERR_IF_APP(dbRc, prepStat(sql, &stmtGfw), DB_INTERFACE__DB_ERROR)
+    RETURN_ERR_IF_APP(dbRc, prepStat(sql, stmtGfw), DB_INTERFACE__DB_ERROR)
 
     for (int i = 0; i < count; i++) {
         // https://sqlite.org/c3ref/bind_blob.html
-        RETURN_ERR_IF_APP(dbRc, sqlite3_bind_int(stmtGfw, i + 1, values[i]),
+        RETURN_ERR_IF_APP(dbRc, sqlite3_bind_int(*stmtGfw, i + 1, values[i]),
             DB_INTERFACE__DB_ERROR);
     }
 
