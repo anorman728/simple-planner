@@ -16,7 +16,6 @@
  * @param   dateObj Date object.
  * @param   desc    Description string.
  * @param   rep     Repetition, from header file's constants.
- * @param   todo    Is an item with a todo
  * @return  int
  */
 int buildItem(
@@ -24,8 +23,7 @@ int buildItem(
     long id,
     Date dateObj,
     char *desc,
-    char rep,
-    char todo
+    char rep
 ) {
     char *descHp = malloc(strlen(desc) + 1);
 
@@ -46,7 +44,6 @@ int buildItem(
     itmDum->date   = dateObj;
     itmDum->desc   = descHp;
     itmDum->rep    = rep;
-    itmDum->todo   = todo;
 
     *item = itmDum;
 

@@ -276,24 +276,21 @@ static int execStr(char *strInp)
  */
 static char saveNew(PlannerItem *item)
 {
-    char *insertRow = "INSERT INTO items(date, desc, rep, todo) \
-        VALUES (?, ?, ?, ?);";
+    char *insertRow = "INSERT INTO items(date, desc, rep) \
+        VALUES (?, ?, ?);";
 
     sqlite3_stmt *stmt;
 
     RETURN_ERR_IF_APP(dbRc, prepStat(insertRow, &stmt), DB_INTERFACE__DB_ERROR)
 
-    int bindints[6];
+    int bindints[4];
     bindints[0] = 1;
     bindints[1] = toInt(item->date);
 
     bindints[2] = 3;
     bindints[3] = item->rep;
 
-    bindints[4] = 4;
-    bindints[5] = item->todo;
-
-    for (int i = 0; i < 6; i += 2) {
+    for (int i = 0; i < 4; i += 2) {
         RETURN_ERR_IF_APP(dbRc, sqlite3_bind_int(stmt, bindints[i], bindints[i+1]),
             DB_INTERFACE__DB_ERROR)
     }
@@ -322,13 +319,13 @@ static char saveNew(PlannerItem *item)
  */
 static char saveExisting(PlannerItem *item)
 {
-    char *updateRow = "UPDATE items SET date = ?, desc = ?, rep = ?, todo = ? WHERE id = ?;";
+    char *updateRow = "UPDATE items SET date = ?, desc = ?, rep = ? WHERE id = ?;";
 
     sqlite3_stmt *stmt;
 
     RETURN_ERR_IF_APP(dbRc, prepStat(updateRow, &stmt), DB_INTERFACE__DB_ERROR)
 
-    int bindints[8];
+    int bindints[6];
     bindints[0] = 1;
     bindints[1] = toInt(item->date);
 
@@ -336,12 +333,9 @@ static char saveExisting(PlannerItem *item)
     bindints[3] = item->rep;
 
     bindints[4] = 4;
-    bindints[5] = item->todo;
+    bindints[5] = item->id;
 
-    bindints[6] = 5;
-    bindints[7] = item->id;
-
-    for (int i = 0; i < 8; i += 2) {
+    for (int i = 0; i < 6; i += 2) {
         RETURN_ERR_IF_APP(dbRc, sqlite3_bind_int(stmt, bindints[i], bindints[i+1]),
             DB_INTERFACE__DB_ERROR)
     }
@@ -424,8 +418,7 @@ static char getFromWhere(PlannerItem **result, char *where, int *values, int cou
         sqlite3_column_int(stmtGfw, 0),
         toDate(sqlite3_column_int(stmtGfw, 1)),
         (char *) sqlite3_column_text(stmtGfw, 2),
-        sqlite3_column_int(stmtGfw, 3),
-        sqlite3_column_int(stmtGfw, 4)
+        sqlite3_column_int(stmtGfw, 3)
     );
 
     if (pfRc != PLANNER_STATUS__OK) {
@@ -451,7 +444,7 @@ static char getFromWherePrepare(sqlite3_stmt **stmtGfw, char *where, int *values
 {
     // Build SQL.
 
-    char *sqldum = "SELECT id,date,desc,rep,todo FROM items WHERE ";
+    char *sqldum = "SELECT id,date,desc,rep FROM items WHERE ";
     // Not using "SELECT *" because the columns are only identified by
     // number, so explicitly naming the columns makes it more future-proof
     // and easier to update.
@@ -641,8 +634,7 @@ static char createDbV1()
         " id INTEGER PRIMARY KEY AUTOINCREMENT,"
         " date INTEGER NOT NULL,"
         " desc TEXT,"
-        " rep INTEGER NOT NULL,"
-        " todo INTEGER NOT NULL"
+        " rep INTEGER NOT NULL"
     ");";
     RETURN_ERR_IF_APP(dbRc, execStr(sqldum), DB_INTERFACE__DB_ERROR)
 

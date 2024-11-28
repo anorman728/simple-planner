@@ -108,8 +108,7 @@ void testSaving()
         0,
         buildDate(22, 6, 5),
         desc,
-        REP_NONE,
-        0
+        REP_NONE
     );
 
     if ((rc = db_interface_save(testObj))) {
@@ -205,8 +204,7 @@ void testGettingRecordsFromRange()
         0,
         buildDate(22, 6, 1),
         notInRes,
-        REP_NONE, // Doesn't matter.
-        0 // Doesn't matter
+        REP_NONE // Doesn't matter.
     );
     if ((rc = db_interface_save(testObj))) {
         printError("first save", rc);
@@ -218,8 +216,7 @@ void testGettingRecordsFromRange()
         0,
         buildDate(22, 6, 5),
         inRes,
-        REP_NONE, // Doesn't matter.
-        0
+        REP_NONE // Doesn't matter.
     );
     if ((rc = db_interface_save(testObj))) {
         printError("second save", rc);
@@ -231,8 +228,7 @@ void testGettingRecordsFromRange()
         0,
         buildDate(22, 6, 10),
         inRes,
-        REP_NONE, // Doesn't matter.
-        0
+        REP_NONE // Doesn't matter.
     );
     if ((rc = db_interface_save(testObj))) {
         printError("third save", rc);
@@ -244,8 +240,7 @@ void testGettingRecordsFromRange()
         0,
         buildDate(22, 6, 15),
         notInRes,
-        REP_NONE,
-        0
+        REP_NONE
     );
     if ((rc = db_interface_save(testObj))) {
         printError("fourth save", rc);
@@ -299,8 +294,7 @@ void testGettingNonexistentRecord()
         0,
         buildDate(22,6,5),
         "some description",
-        REP_NONE,
-        0
+        REP_NONE
     );
 
     if ((rc = db_interface_save(testObj))) {
@@ -371,8 +365,7 @@ void testUpdatingDesc()
         0,
         buildDate(22,6,1),
         "old description",
-        REP_NONE,
-        0
+        REP_NONE
     );
     if ((rc = db_interface_save(testObj))) {
         printError("saving", rc);
@@ -431,8 +424,7 @@ void testDelete()
         0,
         buildDate(22,6,1),
         "to be deleted",
-        REP_NONE,
-        0
+        REP_NONE
     );
 
     printf("...Saving object to be deleted.\n");

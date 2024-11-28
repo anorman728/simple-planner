@@ -68,9 +68,6 @@ static void buildItemTest()
     if (itmDum->rep != REP_YEARLY) {
         printf("FAILURE: rep property is wrong.\n");
     }
-    if (itmDum->todo != 1) {
-        printf("FAILURE: done property is wrong.\n");
-    }
 
     freeItem(itmDum);
 
@@ -92,7 +89,7 @@ static PlannerItem *buildItemDummyFunction()
 
     PlannerItem *itm;
 
-    int rc = buildItem(&itm, 0, dateObj, "Planner description 436", REP_YEARLY, 1);
+    int rc = buildItem(&itm, 0, dateObj, "Planner description 436", REP_YEARLY);
 
     if (rc != PLANNER_STATUS__OK) {
         printf("...buildItemDummyFunction: Received error: %d\n.", rc);

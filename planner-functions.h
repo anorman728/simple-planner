@@ -31,9 +31,6 @@ typedef struct planner_itemstruct
     /** @var Type of repetition, from constants. */
     char rep;
 
-    /** @var True if is a todo item. */
-    char todo;
-
 } PlannerItem;
 
 int buildItem(
@@ -41,8 +38,7 @@ int buildItem(
     long id,
     Date dateObj,
     char *desc,
-    char rep,
-    char todo
+    char rep
 );
 
 void freeItem(PlannerItem *item);
