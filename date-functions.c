@@ -136,6 +136,18 @@ int getWeekday(Date dateObj)
     return dumval.tm_wday;
 }
 
+/**
+ * Find the day that starts the week of a date object.
+ *
+ * @param   dateObj
+ */
+Date getWeek(Date dateObj)
+{
+    int newday = dateObj.day - getWeekday(dateObj);
+
+    return buildDate(dateObj.year, dateObj.month, newday);
+}
+
 // TODO: Get weekday desc. (Mon, Tue, etc.)
 // TODO: Get single-char weekday. (M, T, etc.)
 // Note: Above two might be outside the scope of this module.  Maybe

@@ -15,6 +15,7 @@ void testToDate();
 void testToIntErrorHandling();
 void testToIntErrorHandlingHelper();
 void testGetWeekday();
+void testGetWeek();
 
 int main()
 {
@@ -22,6 +23,7 @@ int main()
     testToString();
     testToIntErrorHandling();
     testGetWeekday();
+    testGetWeek();
 }
 
 /**
@@ -166,6 +168,34 @@ void testGetWeekday()
     }
 
     printf("...Finished testGetWeekday.\n");
+}
+
+/**
+ * Test getWeek function.
+ */
+void testGetWeek()
+{
+    printf("...Starting testGetWeek.\n");
+
+    Date dateObj = buildDate(23,10, 28);
+    // 2024/11/29, which is Friday, so should get back the 24th (23).
+
+    Date res = getWeek(dateObj);
+
+    if (res.day != 23) {
+        printf("FAILURE: expected 23, but found %d\n", res.day);
+    }
+
+    // Just for good measure-- Check the string.
+    char *resdesc;
+    toString(&resdesc, res);
+    //printf("results: %s\n", resdesc);
+    if (strcmp(resdesc, "2024-11-24") != 0) {
+        printf("FAILURE: Date does not match expected 2024-11-24.  Found %s.\n", resdesc);
+    }
+    free(resdesc);
+
+    printf("...Finished testGetWeek.\n");
 }
 
 

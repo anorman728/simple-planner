@@ -7,7 +7,7 @@
 #define DATE_FUNCTIONS__OUT_OF_MEMORY   1
 
 typedef struct date_obj {
-    /** @var Number of complete years since the year 2001. */
+    /** @var Number of complete years since the year 2001. (Like 2003 would be 2.)*/
     int year;
 
     /** @var Month number, 0 - 11. */
@@ -26,6 +26,8 @@ int toString(char **ret, Date dateObj);
 Date toDate(int dateInt);
 
 int getWeekday(Date dateObj);
+
+Date getWeek(Date dateObj);
 
 int reduceIntDate(int dateInt, char rep);
 
