@@ -3,4 +3,5 @@ debug/
 tests/
 *.o
 /sandbox.c
+/sandbox.run
 /compilesandbox.sh
