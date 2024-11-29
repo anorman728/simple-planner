@@ -4,6 +4,7 @@
 #include<time.h>
 
 #include "date-functions.h"
+#include "planner-functions.h"
 
 // I needed to make this because the `struct tm` object was causing more
 // problems than it solves.  I do not want to have to work around DST or time
@@ -22,6 +23,12 @@
  * use for conversion to and from integers.
  */
 #define MONTHMOD 12
+
+/**
+ * The number of days in a year under this system.  Not 365 or 366, but the
+ * multibase system (described in toInt) which results in 31 * 12 = 372 days.
+ */
+#define DAYSINYEAR 372
 
 /** The minimum size that this module needs an `int` type to be (in bytes). */
 #define MININTSIZE 4
@@ -112,7 +119,7 @@ Date toDate(int dateInt)
 
     dateObj.day = dateInt % DAYMOD;
     dateObj.month = (dateInt - dateObj.day) / DAYMOD % MONTHMOD;
-    dateObj.year = (dateInt - dateObj.day - DAYMOD * dateObj.month) / (MONTHMOD * DAYMOD);
+    dateObj.year = (dateInt - dateObj.day - DAYMOD * dateObj.month) / (DAYSINYEAR);
 
     return dateObj;
 }
@@ -133,6 +140,24 @@ int getWeekday(Date dateObj)
 // TODO: Get single-char weekday. (M, T, etc.)
 // Note: Above two might be outside the scope of this module.  Maybe
 // something closer to the user should handle it.
+// Update: ATM, I'm thinking this is going to be handled by
+// planner-interface.c, and probably not at all the way this describes.
+
+/**
+ * Reduce the date (in integer form) based on its repetition type.
+ *
+ * @param   dateInt
+ * @param   rep
+ */
+int reduceIntDate(int dateInt, char rep)
+{
+    switch (rep) {
+        case REP_YEARLY:
+            return dateInt % DAYSINYEAR;
+        default:
+            return dateInt;
+    }
+}
 
 
 // Static functions below this line.

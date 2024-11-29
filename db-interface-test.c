@@ -9,6 +9,7 @@
 void testBuildError();
 void testSaving();
 void testGettingRecordsFromRange();
+void testGettingRecordsForDay();
 void testGettingNonexistentRecord();
 void testUpdatingDesc();
 void testDelete();
@@ -23,6 +24,7 @@ int main()
     testBuildError();
     testSaving();
     testGettingRecordsFromRange();
+    testGettingRecordsForDay();
     testGettingNonexistentRecord();
     testUpdatingDesc();
     testDelete();
@@ -272,6 +274,149 @@ void testGettingRecordsFromRange()
     }
 
     printf("...Completed testGettingRecordsFromRange.\n");
+}
+
+void testGettingRecordsForDay()
+{
+    printf("...Starting testGettingRecordsForDay.\n");
+
+    char rc;
+    int count;
+
+    deleteFileIfExists(testDb);
+    rc = db_interface_initialize(testDb);
+
+    if (rc) {
+        printf("ERROR: Could not initialize db. %d\n", rc);
+    }
+
+    PlannerItem *testObj;
+    PlannerItem *result = NULL;
+
+    buildItem(
+        &testObj,
+        0,
+        buildDate(22, 6, 1),
+        "Test object.",
+        REP_NONE
+    );
+    if ((rc = db_interface_save(testObj))) {
+        printError("first save", rc);
+    }
+    freeItem(testObj);
+
+    // Nothing returned;
+
+    if ((rc = db_interface_day(&result, buildDate(22,6,2))) != DB_INTERFACE__OK) {
+        printf("FAILURE:  Found something when should be nothing.");
+    }
+    if (result != NULL) {
+        printf("FAILURE: result should be null.\n");
+    }
+
+    // One no repetition returned.
+
+    count = 0;
+    while ((rc = db_interface_day(&result, buildDate(22,6,1)))) {
+        count++;
+        if (result->rep != REP_NONE) {
+            printf("FAILURE: On no repetition returned: found repetition that should not exist.\n");
+        }
+        if (strcmp(result->desc, "Test object.") != 0) {
+            printf("FAILURE: On no repetition returned: string does not match.\n");
+        }
+        freeItem(result);
+    }
+
+    if (count != 1) {
+        printf("FAILURE: Should have found exactly one with no repetition returned.\n");
+    }
+
+    // One yearly repetition returned;
+
+    buildItem(
+        &testObj,
+        0,
+        buildDate(22,11,4),
+        "Yearly rep.",
+        REP_YEARLY
+    );
+    if ((rc = db_interface_save(testObj))) {
+        printError("Second save", rc);
+    }
+    freeItem(testObj);
+
+    count = 0;
+    while ((rc = db_interface_day(&result, buildDate(22,11,4)))) {
+        count++;
+        if (result->rep != REP_YEARLY) {
+            printf("FAILURE: On yearly returned, found no wrong kind of rep.\n");
+        }
+        if (strcmp(result->desc, "Yearly rep.") != 0) {
+            printf("FAILURE: On yearly returned, found wrong description.");
+        }
+        freeItem(result);
+    }
+
+    if (count != 1) {
+        printf("FAILURE: SHould have found exactly one with yearly repetition.\n");
+    }
+
+    // Both yearly and no rep.
+
+    buildItem(
+        &testObj,
+        0,
+        buildDate(22,10,4),
+        "Both",
+        REP_NONE
+    );
+    if ((rc = db_interface_save(testObj))) {
+        printError("Third save", rc);
+    }
+    long int id01 = testObj->id;
+    freeItem(testObj);
+
+    buildItem(
+        &testObj,
+        0,
+        buildDate(22,10,4),
+        "Both",
+        REP_YEARLY
+    );
+    if ((rc = db_interface_save(testObj))) {
+        printError("Fourth save", rc);
+    }
+    long int id02 = testObj->id;
+    freeItem(testObj);
+
+    count = 0;
+
+    while ((rc = db_interface_day(&result, buildDate(22,10,4)))) {
+        count++;
+        if (result->id == id01 && result->rep != REP_NONE) {
+            printf("FAILURE: Wrong kind of repetition returned for first item.");
+        }
+        if (result->id == id02 && result->rep != REP_YEARLY) {
+            printf("FAILURE: Wrong kind of repetition returned for second item.");
+        }
+        if (strcmp(result->desc, "Both") != 0) {
+            printf("FAILURE: Wrong description returned for testing both.");
+        }
+        freeItem(result);
+    }
+
+    if (count != 2) {
+        printf("FAILURE: Did not find enough results returned.");
+    }
+
+    // End tests.
+
+    if ((rc = db_interface_finalize())) {
+        printError("Could not finalize db.", rc);
+    }
+
+    printf("...Completed testGettingRecordsForDay.\n");
 }
 
 void testGettingNonexistentRecord()

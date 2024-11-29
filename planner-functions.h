@@ -15,6 +15,17 @@
 
 #define REP_NONE 0
 #define REP_YEARLY 1
+// DO NOT change these values because they go directly into the db.  Can add to
+// them, but don't change the existing ones.
+
+#define REP_MAX 2
+// Except this.  Definitely want to change this if end up adding repetition
+// types.  It should actually be one *greater* than the largest REP_XYZ value.
+
+// Note on repetition: Right now, yearly is the only kind I want, but more can
+// be added.  But some of the logic might be annoying.  The place that will
+// need to be updated will be reduceIntDate, but possibly other places, too,
+// like db_interface_day.
 
 
 typedef struct planner_itemstruct

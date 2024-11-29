@@ -230,6 +230,9 @@ char db_interface_get(PlannerItem **result, int id)
  * DB_INTERFACE__CONT when it successfully returns an item and DB_INTERFACE__OK
  * when the items to retrieve have been exhausted.
  *
+ * DEFUNCT because does not include repetitions.  Use db_interface_day instead
+ * to get one day at a time.
+ *
  * @param   result  Result passed back by argument.
  * @param   lower   Lower bound (inclusive)
  * @param   upper   Upper bound (inclusive)
@@ -241,6 +244,67 @@ char db_interface_range(PlannerItem **result, Date lower, Date upper)
     vals[1] = toInt(lower);
 
     return getFromWhere(result, "date <= ? AND date >= ?", vals, 2);
+}
+
+/**
+ * Iterate through PlannerItem pointers for a particular date, including
+ * repetitions.  Returns DB_INTERFACE__CONT when it successfully returns an
+ * item and DB_INTERFACE__OK when the items to retrieve have been exhausted and
+ * result is set to null pointer.
+ *
+ * Definitely want to continue until DB_INTERFACE__OK is returned, because
+ * otherwise future db calls will be undefined.  (I know what they'll do, I just
+ * don't care to document them since that's not desired behavior; hence
+ * "undefined").
+ *
+ * @param   result  Result passed back by argument.  Needs to be null *every*
+ *  time this is called.
+ * @param   date01  Date
+ */
+char db_interface_day(PlannerItem **result, Date date01)
+{
+    static char repType = REP_MAX - 1;
+    static char refresh = 1;
+
+    char rc;
+    int vals[2];
+    vals[0] = 0;
+    vals[1] = 0;
+
+    if (refresh) {
+        // Only want to bother calculating these values if they're actually
+        // going to be used, and they're not if the where clause isn't changed.
+        vals[0] = reduceIntDate(toInt(date01), repType);
+        vals[1] = repType;
+        refresh = 0;
+    }
+
+    // Run calc.
+    rc = getFromWhere(result, "date == ? AND rep = ?", vals, 2);
+
+    if (rc == DB_INTERFACE__CONT) {
+        return rc;
+    }
+
+    // If reach end, may only have reached end of repetition type.  Need to
+    // switch to the next repetition type and continue (hence the recursive at
+    // the bottom).
+    if (rc == DB_INTERFACE__OK) {
+        repType = (repType - 1 + REP_MAX) % REP_MAX;
+        // Add REP_MAX to make sure it's always positive.
+        refresh = 1;
+    } else {
+        // In this case, there's an error, b/c it's neither cont nor ok.
+        return rc;
+    }
+
+    // But if repType is back to the first type, then that means we've reached
+    // the end of the day, so we're actually done.
+    if (repType == REP_MAX - 1) {
+        return rc;
+    }
+
+    return db_interface_day(result, date01);
 }
 
 
@@ -285,7 +349,7 @@ static char saveNew(PlannerItem *item)
 
     int bindints[4];
     bindints[0] = 1;
-    bindints[1] = toInt(item->date);
+    bindints[1] = reduceIntDate(toInt(item->date), item->rep);
 
     bindints[2] = 3;
     bindints[3] = item->rep;

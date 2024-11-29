@@ -27,4 +27,6 @@ Date toDate(int dateInt);
 
 int getWeekday(Date dateObj);
 
+int reduceIntDate(int dateInt, char rep);
+
 #endif

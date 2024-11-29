@@ -35,4 +35,6 @@ char db_interface_get(PlannerItem **result, int id);
 
 char db_interface_range(PlannerItem **result, Date lower, Date upper);
 
+char db_interface_day(PlannerItem **result, Date date01);
+
 #endif
