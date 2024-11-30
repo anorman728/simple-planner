@@ -19,6 +19,8 @@ char db_interface_initialize(char *filename);
 
 char db_interface_finalize();
 
+sqlite3 *db_interface_get_db();
+
 char db_interface_save(PlannerItem *item);
 
 char db_interface_update_desc(long id, char *newdesc);

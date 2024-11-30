@@ -11,5 +11,4 @@ items -- Contains all planner items.
                              date-functions).
     desc (text)           -- The description.
     rep (int not null)    -- Repetition type, defined by planner-functions.h
-
-TODO: done_items -- Contains all days on which an item should be marked as done/completed.
+    del (int not null)    -- Is soft-deleted.

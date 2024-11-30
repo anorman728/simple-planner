@@ -1,3 +1,4 @@
+#include <sqlite3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -600,6 +601,29 @@ void testDelete()
         printf("FAILURE: Nonnull object returned get db_interface_get.\n");
         return;
     }
+
+    // Now check that it still exists, so it was only soft-deleted.
+
+    sqlite3_stmt *stmt = NULL;
+    char *sqldum = "SELECT desc,del FROM items WHERE id = ?;";
+    rc = sqlite3_prepare_v2(db_interface_get_db(), sqldum, -1, &stmt, 0);
+    rc = sqlite3_bind_int(stmt, 1, id);
+    rc = sqlite3_step(stmt);
+
+    char *resdesc = (char *) malloc(strlen((const char*) sqlite3_column_text(stmt, 0)) + 1);
+    strcpy(resdesc, (const char*) sqlite3_column_text(stmt, 0));
+    if (strcmp(resdesc, "to be deleted") != 0) {
+        printf("FAILURE: Did not find expected item that should only be soft-deleted.");
+    }
+
+    char isdel = sqlite3_column_int(stmt, 1);
+    if (isdel != 1) {
+        printf("FAILURE: Item found, but was not soft-deleted.");
+    }
+
+    sqlite3_finalize(stmt);
+    free(resdesc);
+    resdesc = NULL;
 
     if ((rc = db_interface_finalize())) {
         printError("during finalization", rc);

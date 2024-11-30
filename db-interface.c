@@ -72,6 +72,14 @@ char db_interface_finalize()
 }
 
 /**
+ * Get the db object.  Mostly needed for for testing purposes.
+ */
+sqlite3 *db_interface_get_db()
+{
+    return dbFile;
+}
+
+/**
  * Save array of PlannerItem objects.
  *
  * @param   items   Array of items to save.
@@ -124,7 +132,8 @@ char db_interface_update_desc(long id, char *newdesc)
  */
 char db_interface_delete(long id)
 {
-    char *deleteRow = "DELETE FROM items WHERE id = ?;";
+    //char *deleteRow = "DELETE FROM items WHERE id = ?;";
+    char *deleteRow = "UPDATE items SET del = 1 WHERE id = ?;";
 
     sqlite3_stmt *stmt;
 
@@ -340,8 +349,8 @@ static int execStr(char *strInp)
  */
 static char saveNew(PlannerItem *item)
 {
-    char *insertRow = "INSERT INTO items(date, desc, rep) \
-        VALUES (?, ?, ?);";
+    char *insertRow = "INSERT INTO items(date, desc, rep, del) \
+        VALUES (?, ?, ?, 0);";
 
     sqlite3_stmt *stmt;
 
@@ -508,15 +517,15 @@ static char getFromWherePrepare(sqlite3_stmt **stmtGfw, char *where, int *values
 {
     // Build SQL.
 
-    char *sqldum = "SELECT id,date,desc,rep FROM items WHERE ";
+    char *sqldum = "SELECT id,date,desc,rep FROM items WHERE del = 0 AND (";
     // Not using "SELECT *" because the columns are only identified by
     // number, so explicitly naming the columns makes it more future-proof
     // and easier to update.
 
-    char sql[strlen(sqldum) + strlen(where) + 2]; // Semicol and null term.
+    char sql[strlen(sqldum) + strlen(where) + 3]; // Semicol, closing paren, and null term.
     strcpy(sql, sqldum);
     strcat(sql, where);
-    strcat(sql, ";");
+    strcat(sql, ");");
 
     RETURN_ERR_IF_APP(dbRc, prepStat(sql, stmtGfw), DB_INTERFACE__DB_ERROR)
 
@@ -698,7 +707,8 @@ static char createDbV1()
         " id INTEGER PRIMARY KEY AUTOINCREMENT,"
         " date INTEGER NOT NULL,"
         " desc TEXT,"
-        " rep INTEGER NOT NULL"
+        " rep INTEGER NOT NULL,"
+        " del INTEGER NOT NULL"
     ");";
     RETURN_ERR_IF_APP(dbRc, execStr(sqldum), DB_INTERFACE__DB_ERROR)
 
