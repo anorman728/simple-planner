@@ -1,6 +1,8 @@
 #ifndef date_functions_h
 #define date_functions_h
 
+#include <time.h>
+
 // Constants
 
 #define DATE_FUNCTIONS__OK              0
@@ -30,5 +32,11 @@ int getWeekday(Date dateObj);
 Date getWeek(Date dateObj);
 
 int reduceIntDate(int dateInt, char rep);
+
+Date tmToDate(struct tm tmObj);
+
+void datepp(Date *dateObj);
+
+void datemm(Date *dateObj);
 
 #endif

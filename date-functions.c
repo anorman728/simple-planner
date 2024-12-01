@@ -37,7 +37,6 @@
 // Forward declarations for helper functions.
 static char toIntErrorHandling(Date dateObj);
 static struct tm dateToTm(Date dateObj);
-//static Date tmToDate(struct tm tmObj);
 
 /**
  * Build a date from the year, month, and day.
@@ -148,13 +147,6 @@ Date getWeek(Date dateObj)
     return buildDate(dateObj.year, dateObj.month, newday);
 }
 
-// TODO: Get weekday desc. (Mon, Tue, etc.)
-// TODO: Get single-char weekday. (M, T, etc.)
-// Note: Above two might be outside the scope of this module.  Maybe
-// something closer to the user should handle it.
-// Update: ATM, I'm thinking this is going to be handled by
-// planner-interface.c, and probably not at all the way this describes.
-
 /**
  * Reduce the date (in integer form) based on its repetition type.
  *
@@ -171,6 +163,121 @@ int reduceIntDate(int dateInt, char rep)
     }
 }
 
+
+/**
+ * Convert a struct tm object to a Date object.
+ *
+ * @param   tmObj
+ */
+Date tmToDate(struct tm tmObj)
+{
+    Date returnVal = {};
+
+    returnVal.day   = tmObj.tm_mday - 1;
+    returnVal.month = tmObj.tm_mon;
+    returnVal.year  = tmObj.tm_year - 101;
+
+    return returnVal;
+}
+
+/**
+ * Increment a date object.
+ *
+ * @param   dateObj
+ */
+void datepp(Date *dateObj)
+{
+    // This could be made more succinct, but I like the clarity it has this way.
+
+    dateObj->day++;
+
+    // Remember the offset: Days start on zero, months start on zero.
+
+    if (dateObj->month == 11 && dateObj->day == 31) {
+        dateObj->year++;
+        dateObj->month = 0;
+        dateObj->day = 0;
+        return;
+    }
+    if (dateObj->day == 31) {
+        dateObj->month++;
+        dateObj->day = 0;
+        return;
+    }
+    if (dateObj->day == 30 && (
+        dateObj->month == 3 // April
+        || dateObj->month == 5 // Jun
+        || dateObj->month == 8 // Sep
+        || dateObj->month == 10 // Nov
+        // I *almost* got this on the first try.
+    )) {
+        dateObj->month++;
+        dateObj->day = 0;
+        return;
+    }
+    // Remember at this point that the day has *already* been incremented!
+    if (dateObj->month == 1) {
+        if (dateObj->day == 28 && (dateObj->year % 4 != 3)) {
+            // Feb 29th on a non-leap year, so Mar 1.
+            dateObj->month++;
+            dateObj->day = 0;
+            return;
+        }
+        if (dateObj->day == 29) {
+            // Feb 30th on a non-leap year, so Mar 1.
+            dateObj->month++;
+            dateObj->day = 0;
+            return;
+        }
+    }
+}
+
+/**
+ * Decrement a date object.
+ *
+ * @param   dateObj
+ */
+void datemm(Date *dateObj)
+{
+    dateObj->day--;
+
+    if (dateObj->day != -1) {
+        return;
+    }
+
+    if (dateObj->month == 0) {
+        // Going back from Jan 1st to Dec 31.
+        dateObj->year--;
+        dateObj->month = 11;
+        dateObj->day = 30;
+        return;
+    }
+
+    dateObj->month--;
+
+    if (dateObj->month == 1 && (dateObj->year % 4 == 3)) {
+        // March of leap year to February.
+        dateObj->day = 28;
+        return;
+    }
+
+    if (dateObj->month == 1) {
+        // March of non-leap to Feb
+        dateObj->day = 27;
+        return;
+    }
+
+    if (dateObj->month == 3 // April
+        || dateObj->month == 5 // Jun
+        || dateObj->month == 8 // Sep
+        || dateObj->month == 10 // Nov
+    ) {
+        dateObj->day = 29;
+        return;
+    }
+
+    dateObj->day = 30;
+}
 
 // Static functions below this line.
 
@@ -231,20 +338,3 @@ static struct tm dateToTm(Date dateObj)
 
     return returnVal;
 }
-
-/**
- * Convert a struct tm object to a Date object.
- *
- * @param   tmObj
- */
-// Currently commented out because it's not being used and it's static.
-//static Date tmToDate(struct tm tmObj)
-//{
-//    Date returnVal = {};
-//
-//    returnVal.day   = tmObj.tm_mday - 1;
-//    returnVal.month = tmObj.tm_mon;
-//    returnVal.year  = tmObj.tm_year - 101;
-//
-//    return returnVal;
-//}

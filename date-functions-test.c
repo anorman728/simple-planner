@@ -16,6 +16,8 @@ void testToIntErrorHandling();
 void testToIntErrorHandlingHelper();
 void testGetWeekday();
 void testGetWeek();
+void testDatepp();
+void testDatemm();
 
 int main()
 {
@@ -24,6 +26,8 @@ int main()
     testToIntErrorHandling();
     testGetWeekday();
     testGetWeek();
+    testDatepp();
+    testDatemm();
 }
 
 /**
@@ -196,6 +200,197 @@ void testGetWeek()
     free(resdesc);
 
     printf("...Finished testGetWeek.\n");
+}
+
+/**
+ * Test datepp function.
+ */
+void testDatepp()
+{
+    printf("...Starting testDatepp.\n");
+
+    Date dateObj;
+    char *strDum;
+    char *expDum;
+    char *failString = "FAILURE: %s should result in %s but found %s.\n";
+
+    // Generic.
+
+    dateObj = buildDate(23, 7, 15); // Aug 16, 2024
+
+    datepp(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2024-08-17";
+
+    if (strcmp(expDum, strDum) != 0) {
+        printf(failString, "Generic", expDum, strDum);
+    }
+    free(strDum);
+
+    // Month that only has 30 days.
+    dateObj = buildDate(23, 5, 29); // Jun 30, 2024
+
+    datepp(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2024-07-01";
+
+    if (strcmp(expDum, strDum) != 0) {
+        printf(failString, expDum, strDum);
+    }
+    free(strDum);
+
+    // Month that has 31 days
+    dateObj = buildDate(23, 6, 30); // Jul 31, 2024.
+
+    datepp(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2024-08-01";
+
+    if (strcmp(expDum, strDum) != 0) {
+        printf(failString, "31-days", expDum, strDum);
+    }
+    free(strDum);
+
+    // Feb non-leap-year.
+    dateObj = buildDate(22, 1, 27); // Feb 28, 2023.
+
+    datepp(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2023-03-01";
+
+    if (strcmp(expDum, strDum) != 0) {
+        printf(failString, "Non-leap year", expDum, strDum);
+    }
+    free(strDum);
+
+
+    // Feb leap year
+    // 28 to 29.
+    dateObj = buildDate(23, 1, 27); // Feb 28, 2024
+
+    datepp(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2024-02-29";
+
+    if (strcmp(expDum, strDum) != 0) {
+        printf(failString, "First leap year", expDum, strDum);
+    }
+    free(strDum);
+
+    // Now 29 to March.
+    datepp(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2024-03-01";
+
+    if (strcmp(expDum, strDum) != 0) {
+        printf(failString, "Second leap year", expDum, strDum);
+    }
+    free(strDum);
+
+    // End of year.
+    dateObj = buildDate(23,11,30); // Dec 31, 2024
+
+    datepp(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2025-01-01";
+
+    if (strcmp(expDum, strDum) != 0) {
+        printf(failString, "End of year", expDum, strDum);
+    }
+    free(strDum);
+
+    printf("...Finished testDatepp.\n");
+}
+
+/**
+ * Test datemm function.
+ */
+void testDatemm()
+{
+    printf("...Starting testDatemm.\n");
+
+    Date dateObj;
+    char *strDum;
+    char *expDum;
+    char *failString = "FAILURE: %s should result in %s but found %s.\n";
+
+    // Generic
+
+    dateObj = buildDate(23, 7, 15); // Aug 16, 2024.
+
+    datemm(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2024-08-15";
+
+    if(strcmp(expDum, strDum) != 0) {
+        printf(failString, "Generic", expDum, strDum);
+    }
+    free(strDum);
+
+    // Previous year.
+
+    dateObj = buildDate(23, 0, 0); // Jan 1, 2024.
+
+    datemm(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2023-12-31";
+
+    if (strcmp(expDum, strDum) != 0) {
+        printf(failString, "Previous year", expDum, strDum);
+    }
+    free(strDum);
+
+    // March on leap year.
+
+    dateObj = buildDate(23, 2, 0); // Mar 1, 2024
+
+    datemm(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2024-02-29";
+
+    if (strcmp(expDum, strDum) != 0) {
+        printf(failString, "March on leap year", expDum, strDum);
+    }
+    free(strDum);
+
+    // March on non-leap year.
+
+    dateObj = buildDate(22, 2, 0); // Mar 1, 2023
+
+    datemm(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2023-02-28";
+
+    if (strcmp(expDum, strDum) != 0) {
+        printf(failString, "March on non-leap year", expDum, strDum);
+    }
+    free(strDum);
+
+    // 31-day months.
+    dateObj = buildDate(22, 3, 0); // April 1, 2023
+
+    datemm(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2023-03-31";
+
+    if (strcmp(expDum, strDum) != 0) {
+        printf(failString, "31-day months", expDum, strDum);
+    }
+    free(strDum);
+
+    // 30-day months.
+    dateObj = buildDate(22, 6, 0); // July 1, 2023
+
+    datemm(&dateObj);
+    toString(&strDum, dateObj);
+    expDum = "2023-06-30";
+
+    if (strcmp(expDum, strDum) != 0) {
+        printf(failString, "30-day months", expDum, strDum);
+    }
+    free(strDum);
+
+    printf("...Finished testDatemm.\n");
 }
 
 
