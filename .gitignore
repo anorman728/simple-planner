@@ -5,3 +5,4 @@ tests/
 /sandbox.c
 /sandbox.run
 /compilesandbox.sh
+*.db
