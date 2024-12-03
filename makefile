@@ -1,6 +1,6 @@
 CC=gcc
 P=simple-planner
-OBJECTS= db-interface.o date-functions.o planner-functions.o # Dependencies that need to be compiled first.
+OBJECTS= db-interface.o date-functions.o planner-functions.o planner-interface.o # Dependencies that need to be compiled first.
 CFLAGS = -fsanitize=address -g -ggdb -fno-omit-frame-pointer -Wall -O3
 #CFLAGS = -g -O3
 # Sometimes the warnings get overwhelming temporarily, so I use this.

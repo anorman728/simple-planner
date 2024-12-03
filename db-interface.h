@@ -1,6 +1,8 @@
 #ifndef dbinterface_h
 #define dbinterface_h
 
+#include <sqlite3.h>
+
 #include "planner-functions.h"
 
 // Constants.

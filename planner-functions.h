@@ -24,8 +24,8 @@
 
 // Note on repetition: Right now, yearly is the only kind I want, but more can
 // be added.  But some of the logic might be annoying.  The place that will
-// need to be updated will be reduceIntDate, but possibly other places, too,
-// like db_interface_day.
+// need to be updated will be reduceIntDate and setRepType, but possibly other
+// places, too, like db_interface_day.
 
 
 typedef struct planner_itemstruct
