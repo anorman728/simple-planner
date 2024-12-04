@@ -7,6 +7,7 @@
 
 #define PLANNER_INTERFACE__OK 0
 #define PLANNER_INTERFACE__DB_ERROR 1
+#define PLANNER_INTERFACE__IO_ERROR 2
 
 // Functions
 char planner_interface_initialize(char *filename);

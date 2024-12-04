@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +20,8 @@ static int appendItemMapping(int id);
 static void resetItemMapping();
 
 static void setRepType(char **repTypeStr, char rep);
+
+static char showPrompt();
 
 // static variables.
 
@@ -83,6 +86,8 @@ char planner_interface_display_week(Date dayObj)
 
         datepp(&rollDay);
     }
+
+    showPrompt();
 
     return PLANNER_INTERFACE__OK;
 }
@@ -160,4 +165,30 @@ static void setRepType(char **repTypeStr, char rep)
     strcpy(*repTypeStr, " (");
     strcat(*repTypeStr, repTypeStrDum);
     strcat(*repTypeStr, ")");
+}
+
+/**
+ * Show the standard prompt.
+ */
+static char showPrompt()
+{
+    char inp[50] = "";
+    char rc = 0;
+    printf("(A)dd, (E)dit, (D)elete, (P)revious, (N)ext, (G)oto, (Q)uit\n> ");
+    if ((rc = scanf("%49s", inp)) != 1) {
+        printf("IO error %d\n", rc);
+        return PLANNER_INTERFACE__IO_ERROR;
+    }
+
+    switch (tolower(inp[0])) {
+        case 'q':
+            db_interface_finalize(); // Don't bother checking for errors here.
+            printf("The sea was angry that day, my friends.  Like an old man trying to send back soup in a deli.\n");
+            return PLANNER_INTERFACE__OK;
+        default:
+            printf("Select one of the parenthesized options.\n");
+            showPrompt();
+    }
+
+    return PLANNER_INTERFACE__OK;
 }
