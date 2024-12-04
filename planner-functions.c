@@ -9,7 +9,7 @@
 
 
 /**
- * Build a planner item object.  Returns static as integer.
+ * Build a planner item object.  Returns status as integer.
  *
  * @param   item    Pointer to pointer to point to new object.
  * @param   id      Id from db.  Zero if new object.

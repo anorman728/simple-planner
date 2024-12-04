@@ -23,6 +23,8 @@ static void setRepType(char **repTypeStr, char rep);
 
 static char showPrompt();
 
+static char addItem();
+
 // static variables.
 
 /**
@@ -77,6 +79,8 @@ char planner_interface_display_week(Date dayObj)
     resetItemMapping();
 
     char days[7] = {'S','M','T','W','R','F','A'};
+
+    printf("\n");
 
     for (int i = 0; i < 7; i++) {
         toString(&dayStr, rollDay);
@@ -172,17 +176,22 @@ static void setRepType(char **repTypeStr, char rep)
  */
 static char showPrompt()
 {
-    char inp[50] = "";
+    char inp[2] = "";
     char rc = 0;
-    printf("(A)dd, (E)dit, (D)elete, (P)revious, (N)ext, (G)oto, (Q)uit\n> ");
-    if ((rc = scanf("%49s", inp)) != 1) {
-        printf("IO error %d\n", rc);
+    printf("(A)dd, (E)dit, (D)elete, (P)revious, (N)ext, (C)urrent, (G)oto, (Q)uit\n> ");
+    if ((rc = scanf("%1s", inp)) != 1) {
+        printf("IO error in showPrompt %d\n", rc);
         return PLANNER_INTERFACE__IO_ERROR;
     }
 
     switch (tolower(inp[0])) {
+        case 'a':
+            return addItem();
+        case 'c':
+            return planner_interface_display_week(*currentWeek);
         case 'q':
-            db_interface_finalize(); // Don't bother checking for errors here.
+            db_interface_finalize();
+            // TODO: use print_db_err function, when it exists.
             printf("The sea was angry that day, my friends.  Like an old man trying to send back soup in a deli.\n");
             return PLANNER_INTERFACE__OK;
         default:
@@ -191,4 +200,85 @@ static char showPrompt()
     }
 
     return PLANNER_INTERFACE__OK;
+}
+
+/**
+ * Prompt for adding an item.
+ *
+ * @param   inputStr
+ */
+static char addItem()
+{
+    char day[2] = "";
+    char rc;
+
+    if ((rc = scanf("%1s", day)) != 1) {
+        printf("IO error in addItem %d\n", rc);
+        return PLANNER_INTERFACE__IO_ERROR;
+    }
+
+    PlannerItem *item;
+    Date *dateDum = (Date *) malloc(sizeof(Date));
+
+    memcpy(dateDum, currentWeek, sizeof(*currentWeek));
+
+    char dateinc = 0;
+    switch (tolower(day[0])) {
+        // Skip sunday
+        case 'm':
+            dateinc = 1;
+            break;
+        case 't':
+            dateinc = 2;
+            break;
+        case 'w':
+            dateinc = 3;
+            break;
+        case 'r':
+            dateinc = 4;
+            break;
+        case 'f':
+            dateinc = 5;
+            break;
+        case 'a':
+            dateinc = 6;
+            break;
+    }
+
+    for (char i = 0; i < dateinc; i++) {
+        datepp(dateDum);
+    }
+
+    printf("Description?\n");
+    char desc[100] = "";
+    if ((rc = scanf("%99s", desc)) != 1) {
+        printf("IO error %d\n", rc);
+        return PLANNER_INTERFACE__IO_ERROR;
+    }
+
+    printf("Repeat annually? (y/n)\n");
+    char repInp[2] = "";
+    if ((rc = scanf("%1s", repInp)) != 1) {
+        printf("IO error %d\n", rc);
+        return PLANNER_INTERFACE__IO_ERROR;
+    }
+
+    char rep = (tolower(repInp[0]) == 'y');
+
+    if ((rc = buildItem(&item, 0, *dateDum, desc, rep))) {
+        char *errMsg = NULL;
+        planner_functions_build_err(&errMsg, rc);
+        printf("%s\n", errMsg);
+        free(errMsg);
+        freeItem(item);
+        free(dateDum);
+        return PLANNER_INTERFACE__GENERAL_ERROR;
+    }
+
+    db_interface_save(item);
+    // TODO: Use printDbErr function, when it exists.
+    freeItem(item);
+    free(dateDum);
+
+    return planner_interface_display_week(*currentWeek);
 }
