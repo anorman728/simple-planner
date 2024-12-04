@@ -128,7 +128,7 @@ static int appendItemMapping(int id)
     if (items == NULL) {
         items = (int *) malloc(sizeof(int));
     } else {
-        items = (int *) realloc(items, sizeof(items) + sizeof(int));
+        items = (int *) realloc(items, (displayKey + 1) * sizeof(int));
     }
 
     items[displayKey] = id;
