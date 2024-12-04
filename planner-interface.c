@@ -25,6 +25,8 @@ static char showPrompt();
 
 static char addItem();
 
+static char getInput(char **inputStr, int len);
+
 // static variables.
 
 /**
@@ -176,15 +178,18 @@ static void setRepType(char **repTypeStr, char rep)
  */
 static char showPrompt()
 {
-    char inp[2] = "";
     char rc = 0;
     printf("(A)dd, (E)dit, (D)elete, (P)revious, (N)ext, (C)urrent, (G)oto, (Q)uit\n> ");
-    if ((rc = scanf("%1s", inp)) != 1) {
-        printf("IO error in showPrompt %d\n", rc);
-        return PLANNER_INTERFACE__IO_ERROR;
-    }
 
-    switch (tolower(inp[0])) {
+    char *inp = NULL;
+    if ((rc = getInput(&inp, 3))) { // 3 = first char, space, null term, I think.
+        return rc;
+    }
+    char inpChar = tolower(inp[0]);
+    free(inp);
+    inp = NULL;
+
+    switch (inpChar) {
         case 'a':
             return addItem();
         case 'c':
@@ -209,13 +214,16 @@ static char showPrompt()
  */
 static char addItem()
 {
-    char day[2] = "";
     char rc;
 
-    if ((rc = scanf("%1s", day)) != 1) {
-        printf("IO error in addItem %d\n", rc);
-        return PLANNER_INTERFACE__IO_ERROR;
+    char *day = NULL;
+    if ((rc = getInput(&day, 3))) { // 3 = day, newline, null terminator.
+        return rc;
     }
+    char dayChar = tolower(day[0]);
+    free(day);
+    day = NULL;
+
 
     PlannerItem *item;
     Date *dateDum = (Date *) malloc(sizeof(Date));
@@ -223,7 +231,7 @@ static char addItem()
     memcpy(dateDum, currentWeek, sizeof(*currentWeek));
 
     char dateinc = 0;
-    switch (tolower(day[0])) {
+    switch (dayChar) {
         // Skip sunday
         case 'm':
             dateinc = 1;
@@ -250,20 +258,20 @@ static char addItem()
     }
 
     printf("Description?\n");
-    char desc[100] = "";
-    if ((rc = scanf("%99s", desc)) != 1) {
-        printf("IO error %d\n", rc);
-        return PLANNER_INTERFACE__IO_ERROR;
+    char *desc = NULL;
+    if ((rc = getInput(&desc, 99))) {
+        return rc;
     }
 
     printf("Repeat annually? (y/n)\n");
-    char repInp[2] = "";
-    if ((rc = scanf("%1s", repInp)) != 1) {
-        printf("IO error %d\n", rc);
-        return PLANNER_INTERFACE__IO_ERROR;
+    char *repInp = NULL;
+    if ((rc = getInput(&repInp, 3))) {
+        return rc;
     }
 
     char rep = (tolower(repInp[0]) == 'y');
+    free(repInp);
+    repInp = NULL;
 
     if ((rc = buildItem(&item, 0, *dateDum, desc, rep))) {
         char *errMsg = NULL;
@@ -274,6 +282,8 @@ static char addItem()
         free(dateDum);
         return PLANNER_INTERFACE__GENERAL_ERROR;
     }
+    free(desc);
+    desc = NULL;
 
     db_interface_save(item);
     // TODO: Use printDbErr function, when it exists.
@@ -281,4 +291,30 @@ static char addItem()
     free(dateDum);
 
     return planner_interface_display_week(*currentWeek);
+}
+
+/**
+ * Get input from user and put into inputStr.  len is how much to pull from the
+ * input.  Newlines are converted to null terminators.
+ *
+ * @param   inputStr
+ * @param   len
+ */
+static char getInput(char **inputStr, int len)
+{
+    *inputStr = (char *) malloc(sizeof(char) * len);
+    if (fgets(*inputStr, sizeof(char) * len, stdin) == NULL) {
+        printf("IO error.\n");
+        return PLANNER_INTERFACE__IO_ERROR;
+    }
+
+    int i = 0;
+    while ((*inputStr)[i] != '\0' && i < len) {
+        if ((*inputStr)[i] == '\n') {
+            (*inputStr)[i] = '\0';
+        }
+        i++;
+    }
+
+    return PLANNER_INTERFACE__OK;
 }
