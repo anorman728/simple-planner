@@ -93,7 +93,13 @@ char planner_interface_display_week(Date dayObj)
         datepp(&rollDay);
     }
 
-    showPrompt();
+    char rc;
+    if ((rc = showPrompt()) == PLANNER_INTERFACE__CANCEL) {
+        printf("Canceled.\n");
+        return planner_interface_display_week(*currentWeek);
+    } else if (rc) {
+        return rc;
+    }
 
     return PLANNER_INTERFACE__OK;
 }
@@ -200,11 +206,9 @@ static char showPrompt()
             printf("The sea was angry that day, my friends.  Like an old man trying to send back soup in a deli.\n");
             return PLANNER_INTERFACE__OK;
         default:
-            printf("Select one of the parenthesized options.\n");
-            showPrompt();
+            // I don't think this is possible anymore.
+            return showPrompt();
     }
-
-    return PLANNER_INTERFACE__OK;
 }
 
 /**
@@ -306,6 +310,10 @@ static char getInput(char **inputStr, int len)
     if (fgets(*inputStr, sizeof(char) * len, stdin) == NULL) {
         printf("IO error.\n");
         return PLANNER_INTERFACE__IO_ERROR;
+    }
+
+    if ((*inputStr)[0] == '\n') {
+        return PLANNER_INTERFACE__CANCEL;
     }
 
     int i = 0;
