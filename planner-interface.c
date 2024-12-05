@@ -27,6 +27,10 @@ static char addItem();
 
 static char getInput(char **inputStr, int len);
 
+static void addFlashMessage(char *str);
+
+static void displayFlashMessage();
+
 // static variables.
 
 /**
@@ -46,6 +50,11 @@ static int *items = NULL;
 static Date *currentWeek = NULL;
 
 /**
+ * Message to display at end of current week.
+ */
+static char *flashMsg = NULL;
+
+/**
  * Initialize the db from the filename.
  *
  * @param   filename
@@ -58,6 +67,7 @@ char planner_interface_initialize(char *filename)
         db_interface_build_err(&errStr, rc);
         printf("Database error: %s\n", errStr);
         free(errStr);
+        errStr = NULL;
         return PLANNER_INTERFACE__DB_ERROR;
     }
 
@@ -88,14 +98,17 @@ char planner_interface_display_week(Date dayObj)
         toString(&dayStr, rollDay);
         printf("%c %s\n", days[i], dayStr);
         free(dayStr);
+        dayStr = NULL;
         printAllItemsInDay(rollDay);
 
         datepp(&rollDay);
     }
 
+    displayFlashMessage();
+
     char rc;
     if ((rc = showPrompt()) == PLANNER_INTERFACE__CANCEL) {
-        printf("Canceled.\n");
+        addFlashMessage("Canceled.\n");
         return planner_interface_display_week(*currentWeek);
     } else if (rc) {
         return rc;
@@ -116,7 +129,9 @@ static void printAllItemsInDay(Date dateObj)
         setRepType(&repTypeStr, item->rep);
         printf("  %d) %s%s\n", appendItemMapping(item->id), item->desc, repTypeStr);
         free(repTypeStr);
+        repTypeStr = NULL;
         freeItem(item);
+        item = NULL;
     }
     printf("\n");
 
@@ -125,6 +140,7 @@ static void printAllItemsInDay(Date dateObj)
         db_interface_build_err(&error, rc);
         printf("%s\n", error);
         free(error);
+        error = NULL;
     }
 }
 
@@ -221,7 +237,12 @@ static char addItem()
     char rc;
 
     char *day = NULL;
-    if ((rc = getInput(&day, 3))) { // 3 = day, newline, null terminator.
+    if ((rc = getInput(&day, 3)) == PLANNER_INTERFACE__CANCEL) { // 3 = day, newline, null terminator.
+        addFlashMessage("Usage like \"A T\" to add an item to Tuesday.\n");
+        return rc;
+    } else if (rc) {
+        free(day);
+        day = NULL;
         return rc;
     }
     char dayChar = tolower(day[0]);
@@ -270,6 +291,8 @@ static char addItem()
     printf("Repeat annually? (y/n)\n");
     char *repInp = NULL;
     if ((rc = getInput(&repInp, 3))) {
+        free(desc);
+        desc = NULL;
         return rc;
     }
 
@@ -282,8 +305,11 @@ static char addItem()
         planner_functions_build_err(&errMsg, rc);
         printf("%s\n", errMsg);
         free(errMsg);
+        errMsg = NULL;
         freeItem(item);
+        item = NULL;
         free(dateDum);
+        dateDum = NULL;
         return PLANNER_INTERFACE__GENERAL_ERROR;
     }
     free(desc);
@@ -292,7 +318,9 @@ static char addItem()
     db_interface_save(item);
     // TODO: Use printDbErr function, when it exists.
     freeItem(item);
+    item = NULL;
     free(dateDum);
+    dateDum = NULL;
 
     return planner_interface_display_week(*currentWeek);
 }
@@ -309,10 +337,14 @@ static char getInput(char **inputStr, int len)
     *inputStr = (char *) malloc(sizeof(char) * len);
     if (fgets(*inputStr, sizeof(char) * len, stdin) == NULL) {
         printf("IO error.\n");
+        free(*inputStr);
+        *inputStr = NULL;
         return PLANNER_INTERFACE__IO_ERROR;
     }
 
     if ((*inputStr)[0] == '\n') {
+        free(*inputStr);
+        *inputStr = NULL;
         return PLANNER_INTERFACE__CANCEL;
     }
 
@@ -325,4 +357,33 @@ static char getInput(char **inputStr, int len)
     }
 
     return PLANNER_INTERFACE__OK;
+}
+
+/**
+ * Add string to flash message.
+ */
+static void addFlashMessage(char *str)
+{
+    if (flashMsg == NULL) {
+        flashMsg = (char *) malloc(strlen(str) + 2 * sizeof(char));
+        strcpy(flashMsg, "");
+    } else {
+        flashMsg = (char *) realloc(flashMsg, strlen(str) + strlen(flashMsg) + 2 * sizeof(char));
+    }
+    strcat(flashMsg, str);
+    strcat(flashMsg, "\n");
+}
+
+/**
+ * Display flash message and flush it.
+ */
+static void displayFlashMessage()
+{
+    if (flashMsg == NULL) {
+        return;
+    }
+
+    printf("%s\n", flashMsg);
+    free(flashMsg);
+    flashMsg = NULL;
 }
