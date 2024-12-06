@@ -19,6 +19,7 @@ debug: $(P)
 	@rm -rf $(OUTDIR)/$(P)
 	@mv $(P) $(OUTDIR)
 
+release: CFLAGS=
 release: OUTDIR=$(RELDIR)
 release: debug
 
