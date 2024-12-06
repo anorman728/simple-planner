@@ -551,7 +551,7 @@ static char getInput(char **inputStr, int len, char flush)
 
     if (flush && !hasNewline) {
         char c;
-        while ((c = getchar()) != '\n' && c != EOF);
+        while ((c = getchar()) != '\n');
     }
 
     return PLANNER_INTERFACE__OK;
