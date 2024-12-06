@@ -712,5 +712,8 @@ static char createDbV1()
     ");";
     RETURN_ERR_IF_APP(dbRc, execStr(sqldum), DB_INTERFACE__DB_ERROR)
 
+    sqldum = "CREATE INDEX idx_date ON items(date);";
+    RETURN_ERR_IF_APP(dbRc, execStr(sqldum), DB_INTERFACE__DB_ERROR)
+
     return DB_INTERFACE__OK;
 }
