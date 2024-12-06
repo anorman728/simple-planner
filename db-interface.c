@@ -23,7 +23,7 @@ static char db_interface_build_err__ifce(char **str, int code);
 
 
 static char updateDatabase();
-static char doesDatabaseExist();
+static char doesDatabaseExist(char *result);
 static char createDbV1();
 
 /** This is the error code from SQLite. */
