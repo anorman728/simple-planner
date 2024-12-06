@@ -203,7 +203,9 @@ static char showPrompt()
 
     char *inp = NULL;
     if ((rc = getInput(&inp, 3))) { // 3 = first char, space, null term, I think.
-        return rc;
+        printf("Select one of the parenthesized options.\n");
+        free(inp);
+        return showPrompt();
     }
     char inpChar = tolower(inp[0]);
     free(inp);
@@ -221,7 +223,8 @@ static char showPrompt()
             printf("The sea was angry that day, my friends.  Like an old man trying to send back soup in a deli.\n");
             return PLANNER_INTERFACE__OK;
         default:
-            // I don't think this is possible anymore.
+            // I know this is code duplication, but atm I don't care much.
+            printf("Select one of the parenthesized options.\n");
             return showPrompt();
     }
 }
