@@ -199,6 +199,17 @@ void testGetWeek()
     }
     free(resdesc);
 
+    // Now test on week with a month break.
+
+    dateObj = buildDate(23,9,3);
+    // 2024/10/4, which is a Friday, should go back to 2024/9/29.
+
+    res = getWeek(dateObj);
+
+    if (res.day != 28) {
+        printf("FAILURE: Expected 28, but found %d\n.", res.day);
+    }
+
     printf("...Finished testGetWeek.\n");
 }
 

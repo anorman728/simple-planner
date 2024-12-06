@@ -142,9 +142,12 @@ int getWeekday(Date dateObj)
  */
 Date getWeek(Date dateObj)
 {
-    int newday = dateObj.day - getWeekday(dateObj);
+    Date returnVal = dateObj;
+    while (getWeekday(returnVal) != 0) {
+        datemm(&returnVal);
+    }
 
-    return buildDate(dateObj.year, dateObj.month, newday);
+    return returnVal;
 }
 
 /**
