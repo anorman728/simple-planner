@@ -33,6 +33,8 @@ static char editItem();
 
 static char deleteItem();
 
+static char gotoWeek();
+
 static char getInput(char **inputStr, int len);
 
 static void addFlashMessage(char *str);
@@ -226,6 +228,8 @@ static char showPrompt()
             return editItem();
         case 'd':
             return deleteItem();
+        case 'g':
+            return gotoWeek();
         case 'c':
             return planner_interface_display_week(*currentWeek);
         case 'q':
@@ -384,6 +388,7 @@ static char deleteItem()
     char *itemStr = NULL;
     if ((rc = getInput(&itemStr, 3)) == PLANNER_INTERFACE__CANCEL) {
         free(itemStr);
+        itemStr = NULL;
         addFlashMessage("Usage like \"D 3\" to delete third item displayed.\n");
         return rc;
     } else if (rc) {
@@ -419,6 +424,50 @@ static char deleteItem()
     }
 
     return planner_interface_display_week(*currentWeek);
+}
+
+/**
+ * Prompt for goto week.
+ */
+static char gotoWeek()
+{
+    char rc;
+    char *weekStr = NULL;
+    char *usageMsg = "Usage like \"G 241014\" to go to Oct 14, 2024.\n";
+    if ((rc = getInput(&weekStr, 8)) == PLANNER_INTERFACE__CANCEL) {
+        free(weekStr);
+        weekStr = NULL;
+        addFlashMessage(usageMsg);
+        return rc;
+    } else if (rc) {
+        free(weekStr);
+        weekStr = NULL;
+        return rc;
+    }
+
+    if (strlen(weekStr) != 6) {
+        free(weekStr);
+        weekStr = NULL;
+        addFlashMessage(usageMsg);
+        return PLANNER_INTERFACE__CANCEL;
+    }
+
+    char dumStr[3];
+    dumStr[2] = '\0';
+
+    strncpy(dumStr, weekStr, 2);
+    int yr = atoi(dumStr);
+
+    strncpy(dumStr, weekStr + 2, 2);
+    int mn = atoi(dumStr);
+
+    strncpy(dumStr, weekStr + 4, 2);
+    int dy = atoi(dumStr);
+
+    Date newWeek = buildDate(yr - 1, mn - 1, dy - 1);
+    free(weekStr);
+
+    return planner_interface_display_week(newWeek);
 }
 
 /**
