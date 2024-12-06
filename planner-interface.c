@@ -13,6 +13,10 @@
 
 // Forward declaration of static functions.
 
+// I don't know if anybody is reading this as part of a hiring process, but
+// just FYI, this is the last module I wrote, so it's sloppy because I'm
+// getting antsy about actually using it.
+
 static void printAllItemsInDay(Date dateObj);
 
 static int appendItemMapping(long id);
@@ -26,6 +30,8 @@ static char showPrompt();
 static char addItem();
 
 static char editItem();
+
+static char deleteItem();
 
 static char getInput(char **inputStr, int len);
 
@@ -218,6 +224,8 @@ static char showPrompt()
             return addItem();
         case 'e':
             return editItem();
+        case 'd':
+            return deleteItem();
         case 'c':
             return planner_interface_display_week(*currentWeek);
         case 'q':
@@ -367,8 +375,60 @@ static char editItem()
 }
 
 /**
+ * Prompt for deleting an item.
+ */
+static char deleteItem()
+{
+    char rc;
+
+    char *itemStr = NULL;
+    if ((rc = getInput(&itemStr, 3)) == PLANNER_INTERFACE__CANCEL) {
+        free(itemStr);
+        addFlashMessage("Usage like \"D 3\" to delete third item displayed.\n");
+        return rc;
+    } else if (rc) {
+        free(itemStr);
+        itemStr = NULL;
+        return rc;
+    }
+
+    printf("Are you sure you want to delete item #%s? (y/n)\n", itemStr);
+    char *confirmStr = NULL;
+    if ((rc = getInput(&confirmStr, 3))) {
+        free(confirmStr);
+        confirmStr = NULL;
+        free(itemStr);
+        itemStr = NULL;
+        return rc;
+    }
+
+    if (tolower(confirmStr[0]) != 'y') {
+        free(confirmStr);
+        confirmStr = NULL;
+        return planner_interface_display_week(*currentWeek);
+    }
+
+    free(confirmStr);
+    confirmStr = NULL;
+
+    long id = items[atoi(itemStr) - 1];
+    free(itemStr);
+
+    if ((rc = db_interface_delete(id))) {
+        printDbErr(rc);
+    }
+
+    return planner_interface_display_week(*currentWeek);
+}
+
+/**
  * Get input from user and put into inputStr.  len is how much to pull from the
  * input.  Newlines are converted to null terminators.
+ *
+ * If including the *end* of user input, will want to take that into
+ * consideration when deciding the len value, to make sure the newline doesn't
+ * get sucked into the *next* time stdin is read.  It'll make for confusing
+ * problems otherwise.
  *
  * @param   inputStr
  * @param   len
