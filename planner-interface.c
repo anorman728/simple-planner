@@ -15,7 +15,7 @@
 
 static void printAllItemsInDay(Date dateObj);
 
-static int appendItemMapping(int id);
+static int appendItemMapping(long id);
 
 static void resetItemMapping();
 
@@ -24,6 +24,8 @@ static void setRepType(char **repTypeStr, char rep);
 static char showPrompt();
 
 static char addItem();
+
+static char editItem();
 
 static char getInput(char **inputStr, int len);
 
@@ -39,7 +41,7 @@ static void printDbErr(char errCode);
  * Currently-displayed number of item on screen.  Increments with every one
  * printed on the screen.
  */
-static int displayKey = 0;
+static long displayKey = 0;
 
 /**
  * Map of the displayed item number to the item id.
@@ -145,7 +147,7 @@ static void printAllItemsInDay(Date dateObj)
 /**
  * Append an id to the item mapping.
  */
-static int appendItemMapping(int id)
+static int appendItemMapping(long id)
 {
     if (items == NULL) {
         items = (int *) malloc(sizeof(int));
@@ -214,6 +216,8 @@ static char showPrompt()
     switch (inpChar) {
         case 'a':
             return addItem();
+        case 'e':
+            return editItem();
         case 'c':
             return planner_interface_display_week(*currentWeek);
         case 'q':
@@ -231,8 +235,6 @@ static char showPrompt()
 
 /**
  * Prompt for adding an item.
- *
- * @param   inputStr
  */
 static char addItem()
 {
@@ -324,6 +326,42 @@ static char addItem()
     item = NULL;
     free(dateDum);
     dateDum = NULL;
+
+    return planner_interface_display_week(*currentWeek);
+}
+
+/**
+ * Prompt for editing an item.
+ */
+static char editItem()
+{
+    char rc;
+
+    char *itemStr = NULL;
+    if ((rc = getInput(&itemStr, 5)) == PLANNER_INTERFACE__CANCEL) { // 3 for items + 1 for line break + 1 null term = 5.
+        free(itemStr);
+        addFlashMessage("Usage like \"E 5\" to edit the fifth item displayed.\n");
+        return rc;
+    } else if (rc) {
+        free(itemStr);
+        itemStr = NULL;
+        return rc;
+    }
+
+    long id = items[atoi(itemStr) - 1];
+    free(itemStr);
+
+    printf("New description?\n");
+    char *desc = NULL;
+    if ((rc = getInput(&desc, 99))) {
+        free(desc);
+        return rc;
+    }
+
+    if ((rc = db_interface_update_desc(id, desc))) {
+        printDbErr(rc);
+    }
+    free(desc);
 
     return planner_interface_display_week(*currentWeek);
 }
