@@ -43,7 +43,7 @@ static char nextWeek();
 
 static char gotoWeek();
 
-static char getInput(char **inputStr, int len);
+static char getInput(char **inputStr, int len, char flush);
 
 static void addFlashMessage(char *str);
 
@@ -103,9 +103,8 @@ char planner_interface_display_week(Date dayObj)
 {
     Date rollDay = getWeek(dayObj); // Starting today, rolls through the week.
 
-    // TODO: I may want to pass dayObj by refrence so I can find out if it's
-    // pointing to the same place as currentWeek already is, thereby avoiding
-    // freeing and reallocating something that's not changing.
+    // TODO: Make currentWeek set with a completely different function to avoid
+    // doing this every time the week is displayed.
     free(currentWeek);
     currentWeek = (Date *) malloc(sizeof(Date));
     memcpy(currentWeek, &rollDay, sizeof(rollDay));
@@ -223,7 +222,7 @@ static char showPrompt()
     printf("(A)dd, (E)dit, (D)elete, (P)revious, (N)ext, (C)urrent, (G)oto, (Q)uit\n> ");
 
     char *inp = NULL;
-    if ((rc = getInput(&inp, 3))) { // 3 = first char, space, null term, I think.
+    if ((rc = getInput(&inp, 3, 0))) { // 3 = first char, space, null term, I think.
         printf("Select one of the parenthesized options.\n");
         free(inp);
         return showPrompt();
@@ -268,7 +267,7 @@ static char addItem()
     char rc;
 
     char *day = NULL;
-    if ((rc = getInput(&day, 3)) == PLANNER_INTERFACE__CANCEL) { // 3 = day, newline, null terminator.
+    if ((rc = getInput(&day, 3, 1)) == PLANNER_INTERFACE__CANCEL) { // 3 = day, newline, null terminator.
         addFlashMessage("Usage like \"A T\" to add an item to Tuesday.\n");
         return rc;
     } else if (rc) {
@@ -315,15 +314,17 @@ static char addItem()
 
     printf("Description?\n");
     char *desc = NULL;
-    if ((rc = getInput(&desc, 99))) {
+    if ((rc = getInput(&desc, 99, 1))) {
         return rc;
     }
 
     printf("Repeat annually? (y/n)\n");
     char *repInp = NULL;
-    if ((rc = getInput(&repInp, 3))) {
+    if ((rc = getInput(&repInp, 3, 1))) {
         free(desc);
         desc = NULL;
+        free(dateDum);
+        dateDum = NULL;
         return rc;
     }
 
@@ -365,7 +366,7 @@ static char editItem()
     char rc;
 
     char *itemStr = NULL;
-    if ((rc = getInput(&itemStr, 5)) == PLANNER_INTERFACE__CANCEL) { // 3 for items + 1 for line break + 1 null term = 5.
+    if ((rc = getInput(&itemStr, 5, 1)) == PLANNER_INTERFACE__CANCEL) { // 3 for items + 1 for line break + 1 null term = 5.
         free(itemStr);
         addFlashMessage("Usage like \"E 5\" to edit the fifth item displayed.\n");
         return rc;
@@ -380,7 +381,7 @@ static char editItem()
 
     printf("New description?\n");
     char *desc = NULL;
-    if ((rc = getInput(&desc, 99))) {
+    if ((rc = getInput(&desc, 99, 1))) {
         free(desc);
         return rc;
     }
@@ -401,7 +402,7 @@ static char deleteItem()
     char rc;
 
     char *itemStr = NULL;
-    if ((rc = getInput(&itemStr, 3)) == PLANNER_INTERFACE__CANCEL) {
+    if ((rc = getInput(&itemStr, 3, 1)) == PLANNER_INTERFACE__CANCEL) {
         free(itemStr);
         itemStr = NULL;
         addFlashMessage("Usage like \"D 3\" to delete third item displayed.\n");
@@ -414,7 +415,7 @@ static char deleteItem()
 
     printf("Are you sure you want to delete item #%s? (y/n)\n", itemStr);
     char *confirmStr = NULL;
-    if ((rc = getInput(&confirmStr, 3))) {
+    if ((rc = getInput(&confirmStr, 3, 1))) {
         free(confirmStr);
         confirmStr = NULL;
         free(itemStr);
@@ -474,7 +475,7 @@ static char gotoWeek()
     char rc;
     char *weekStr = NULL;
     char *usageMsg = "Usage like \"G 241014\" to go to Oct 14, 2024.\n";
-    if ((rc = getInput(&weekStr, 8)) == PLANNER_INTERFACE__CANCEL) {
+    if ((rc = getInput(&weekStr, 8, 1)) == PLANNER_INTERFACE__CANCEL) {
         free(weekStr);
         weekStr = NULL;
         addFlashMessage(usageMsg);
@@ -522,7 +523,7 @@ static char gotoWeek()
  * @param   inputStr
  * @param   len
  */
-static char getInput(char **inputStr, int len)
+static char getInput(char **inputStr, int len, char flush)
 {
     *inputStr = (char *) malloc(sizeof(char) * len);
     if (fgets(*inputStr, sizeof(char) * len, stdin) == NULL) {
@@ -539,11 +540,18 @@ static char getInput(char **inputStr, int len)
     }
 
     int i = 0;
+    char hasNewline = 0;
     while ((*inputStr)[i] != '\0' && i < len) {
         if ((*inputStr)[i] == '\n') {
+            hasNewline = 1;
             (*inputStr)[i] = '\0';
         }
         i++;
+    }
+
+    if (flush && !hasNewline) {
+        char c;
+        while ((c = getchar()) != '\n' && c != EOF);
     }
 
     return PLANNER_INTERFACE__OK;
