@@ -31,6 +31,8 @@ static void addFlashMessage(char *str);
 
 static void displayFlashMessage();
 
+static void printDbErr(char errCode);
+
 // static variables.
 
 /**
@@ -136,11 +138,7 @@ static void printAllItemsInDay(Date dateObj)
     printf("\n");
 
     if (rc != DB_INTERFACE__OK) {
-        char *error = NULL;
-        db_interface_build_err(&error, rc);
-        printf("%s\n", error);
-        free(error);
-        error = NULL;
+        printDbErr(rc);
     }
 }
 
@@ -217,8 +215,9 @@ static char showPrompt()
         case 'c':
             return planner_interface_display_week(*currentWeek);
         case 'q':
-            db_interface_finalize();
-            // TODO: use print_db_err function, when it exists.
+            if ((rc = db_interface_finalize())) {
+                printDbErr(rc);
+            }
             printf("The sea was angry that day, my friends.  Like an old man trying to send back soup in a deli.\n");
             return PLANNER_INTERFACE__OK;
         default:
@@ -315,8 +314,9 @@ static char addItem()
     free(desc);
     desc = NULL;
 
-    db_interface_save(item);
-    // TODO: Use printDbErr function, when it exists.
+    if ((rc = db_interface_save(item))) {
+        printDbErr(rc);
+    }
     freeItem(item);
     item = NULL;
     free(dateDum);
@@ -386,4 +386,18 @@ static void displayFlashMessage()
     printf("%s\n", flashMsg);
     free(flashMsg);
     flashMsg = NULL;
+}
+
+/**
+ * Print database error from return code.
+ *
+ * @param   errCode
+ */
+static void printDbErr(char errCode)
+{
+    char *error = NULL;
+    db_interface_build_err(&error, errCode);
+    printf("Database error: %s\n", error);
+    free(error);
+    error = NULL;
 }
