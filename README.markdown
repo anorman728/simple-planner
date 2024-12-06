@@ -1,12 +1,11 @@
 # Simple Planner
 
-Initial commit.  Actual description will come later.
+Every calendar software that I've ever used, ever, has been terrible.  Not just recent ones, but when I was using Palm OS and even those digital organizers in the 90s.
 
-Some miscellaneous notes about this project:
+The reason they're terrible is that they insist that every item either has a *time* or be an "all day event".  I just want to put an item on a calendar like I would with a regular paper calendar.
 
-* This is my first C project that's not just an exercise.  (Yay!)  So some stuff probably stinks.
-* I know that I should write some kind of configure script, using something called Autoconf.  I will do that in future projects, but at the moment I really want to get *some* kind of C project done.
-* Similarly, there are no "proper" unit test, at least not yet.  I'll probably make some rudimentary unit tests that don't use an actual framework.
-* And I'm mostly using PHP documentation standards.  It's just what I know.
-* I'm sure my makefile is horrible.  I don't want to take the time right now to figure out how to do it the right way.
-* This uses SQLite, so Ubuntu/Debian users (like me) need to install `libsqlite3-dev`.  Termux thankfully already has it preinstalled.
+So, I made this, which is literally just adding items to days.
+
+It's CLI, but it works fine in Termux on Android.
+
+`make release` will build it in termux.
