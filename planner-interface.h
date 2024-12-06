@@ -9,9 +9,9 @@
 #define PLANNER_INTERFACE__DB_ERROR 1
 #define PLANNER_INTERFACE__IO_ERROR 2
 #define PLANNER_INTERFACE__GENERAL_ERROR 3
-#define PLANNER_INTERFACE__CANCEL 4
 // Not sure of better name.  This means that there's an error in the program
 // itself, not with its interaction with interface or sqlite.
+#define PLANNER_INTERFACE__CANCEL 4
 
 // Functions
 char planner_interface_initialize(char *filename);

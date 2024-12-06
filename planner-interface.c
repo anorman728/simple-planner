@@ -17,6 +17,10 @@
 // just FYI, this is the last module I wrote, so it's sloppy because I'm
 // getting antsy about actually using it.
 
+// Also, I know the recursion risks a stack overflow, but... It's unlikely that
+// I'll keep the program open that much and I kinda like recursion.  If it ever
+// becomes a problem, I'll switch to a main loop.
+
 static void printAllItemsInDay(Date dateObj);
 
 static int appendItemMapping(long id);
@@ -95,6 +99,9 @@ char planner_interface_display_week(Date dayObj)
 {
     Date rollDay = getWeek(dayObj); // Starting today, rolls through the week.
 
+    // TODO: I may want to pass dayObj by refrence so I can find out if it's
+    // pointing to the same place as currentWeek already is, thereby avoiding
+    // freeing and reallocating something that's not changing.
     free(currentWeek);
     currentWeek = (Date *) malloc(sizeof(Date));
     memcpy(currentWeek, &rollDay, sizeof(rollDay));
