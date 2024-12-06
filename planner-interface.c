@@ -37,6 +37,10 @@ static char editItem();
 
 static char deleteItem();
 
+static char previousWeek();
+
+static char nextWeek();
+
 static char gotoWeek();
 
 static char getInput(char **inputStr, int len);
@@ -235,6 +239,10 @@ static char showPrompt()
             return editItem();
         case 'd':
             return deleteItem();
+        case 'p':
+            return previousWeek();
+        case 'n':
+            return nextWeek();
         case 'g':
             return gotoWeek();
         case 'c':
@@ -434,7 +442,32 @@ static char deleteItem()
 }
 
 /**
- * Prompt for goto week.
+ * Go to previous week.
+ */
+static char previousWeek()
+{
+    for (char i = 0; i < 7; i++) {
+        datemm(currentWeek);
+    }
+
+    return planner_interface_display_week(*currentWeek);
+}
+
+
+/**
+ * Go to next week.
+ */
+static char nextWeek()
+{
+    for (char i = 0; i < 7; i++) {
+        datepp(currentWeek);
+    }
+
+    return planner_interface_display_week(*currentWeek);
+}
+
+/**
+ * Go to defined week.
  */
 static char gotoWeek()
 {
