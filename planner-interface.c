@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+// Only want to use time.h for *one* function!
 
 #include "planner-interface.h"
 
@@ -42,6 +44,8 @@ static char previousWeek();
 static char nextWeek();
 
 static char gotoWeek();
+
+static char gotoToday();
 
 static char getInput(char **inputStr, int len, char flush);
 
@@ -219,7 +223,7 @@ static void setRepType(char **repTypeStr, char rep)
 static char showPrompt()
 {
     char rc = 0;
-    printf("(A)dd, (E)dit, (D)elete, (P)revious, (N)ext, (C)urrent, (G)oto, (Q)uit\n> ");
+    printf("(A)dd, (E)dit, (D)elete, (P)revious, (N)ext, (C)urrent, (T)oday, (G)oto, (Q)uit\n> ");
 
     char *inp = NULL;
     if ((rc = getInput(&inp, 3, 0))) { // 3 = first char, space, null term, I think.
@@ -246,6 +250,8 @@ static char showPrompt()
             return gotoWeek();
         case 'c':
             return planner_interface_display_week(*currentWeek);
+        case 't':
+            return gotoToday();
         case 'q':
             if ((rc = db_interface_finalize())) {
                 printDbErr(rc);
@@ -509,6 +515,21 @@ static char gotoWeek()
     free(weekStr);
 
     return planner_interface_display_week(newWeek);
+}
+
+/**
+ * Goto today.
+ */
+static char gotoToday()
+{
+    time_t current_time;
+    struct tm *time_info;
+
+    time(&current_time);
+    time_info = localtime(&current_time);
+    Date today = tmToDate(*time_info);
+
+    return planner_interface_display_week(today);
 }
 
 /**
