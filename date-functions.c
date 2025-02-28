@@ -184,6 +184,43 @@ Date tmToDate(struct tm tmObj)
 }
 
 /**
+ * Get the current day as a Date object.
+ */
+Date todayDate()
+{
+    time_t current_time;
+    struct tm *time_info;
+
+    time(&current_time);
+    time_info = localtime(&current_time);
+
+    return tmToDate(*time_info);
+}
+
+/**
+ * Return 1 if dayOne is equal to dayTwo, otherwise 0.
+ *
+ * @param   dayOne
+ * @param   dayTwo
+ */
+char dateMatch(Date *dayOne, Date *dayTwo)
+{
+    if (dayOne->day != dayTwo->day) {
+        return 0;
+    }
+
+    if (dayOne->month != dayTwo->month) {
+        return 0;
+    }
+
+    if (dayOne->year != dayTwo->year) {
+        return 0;
+    }
+
+    return 1;
+}
+
+/**
  * Increment a date object.
  *
  * @param   dateObj

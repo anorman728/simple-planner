@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 #include "planner-interface.h"
 #include "date-functions.h"
@@ -21,14 +20,7 @@ int main(int argc, char *argv[])
         return ERR__GENERAL;
     }
 
-    time_t current_time;
-    struct tm *time_info;
-
-    time(&current_time);
-    time_info = localtime(&current_time);
-    Date today = tmToDate(*time_info);
-
-    planner_interface_display_week(today);
+    planner_interface_display_week(todayDate());
 
     return 0;
 }

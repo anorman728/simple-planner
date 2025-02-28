@@ -120,9 +120,19 @@ char planner_interface_display_week(Date dayObj)
 
     printf("\n");
 
+    Date today = todayDate();
+    toString(&dayStr, today);
+    printf("Today is %c %s.\n\n", days[getWeekday(today)], dayStr);
+    free(dayStr);
+    dayStr = NULL;
+
     for (int i = 0; i < 7; i++) {
         toString(&dayStr, rollDay);
-        printf("%c %s\n", days[i], dayStr);
+        printf("%c %s", days[i], dayStr);
+        if (dateMatch(&today, &rollDay)) {
+            putchar('*');
+        }
+        printf("\n");
         free(dayStr);
         dayStr = NULL;
         printAllItemsInDay(rollDay);
@@ -522,14 +532,7 @@ static char gotoWeek()
  */
 static char gotoToday()
 {
-    time_t current_time;
-    struct tm *time_info;
-
-    time(&current_time);
-    time_info = localtime(&current_time);
-    Date today = tmToDate(*time_info);
-
-    return planner_interface_display_week(today);
+    return planner_interface_display_week(todayDate());
 }
 
 /**

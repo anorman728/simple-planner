@@ -16,6 +16,7 @@ void testToIntErrorHandling();
 void testToIntErrorHandlingHelper();
 void testGetWeekday();
 void testGetWeek();
+void testDateMatch();
 void testDatepp();
 void testDatemm();
 
@@ -26,6 +27,7 @@ int main()
     testToIntErrorHandling();
     testGetWeekday();
     testGetWeek();
+    testDateMatch();
     testDatepp();
     testDatemm();
 }
@@ -172,6 +174,29 @@ void testGetWeekday()
     }
 
     printf("...Finished testGetWeekday.\n");
+}
+
+/**
+ * Test dateMatch function.
+ */
+void testDateMatch()
+{
+    printf("...Starting testDateMatch.\n");
+
+    Date dateObj1 = buildDate(19, 11, 24); // Christmas 2020.
+    Date dateObj2 = buildDate(19, 11, 24); // Same day.
+
+    if (!dateMatch(&dateObj1, &dateObj2)) {
+        printf("FAILURE: Dates that were the same returned false.\n");
+    }
+
+    dateObj2.day = 22; // Changed to Festivus.
+
+    if (dateMatch(&dateObj1, &dateObj2)) {
+        printf("FAILURE: Dates that were different returned true.\n");
+    }
+
+    printf("...Finished testDateMatch.\n");
 }
 
 /**

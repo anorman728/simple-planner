@@ -35,6 +35,10 @@ int reduceIntDate(int dateInt, char rep);
 
 Date tmToDate(struct tm tmObj);
 
+Date todayDate();
+
+char dateMatch(Date *dayOne, Date *dayTwo);
+
 void datepp(Date *dateObj);
 
 void datemm(Date *dateObj);
